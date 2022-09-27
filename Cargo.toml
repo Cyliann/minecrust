@@ -1,0 +1,21 @@
+[package]
+name = "game"
+version = "0.1.0"
+edition = "2021"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[dependencies]
+bevy = {version = "0.8", features = ["dynamic"] }
+bevy-inspector-egui = "0.12.1"
+bevy_atmosphere = "0.4.0"
+bevy_flycam = "*"
+itertools = "0.10.3"
+noise = "0.7.0"
+
+[workspace]
+resolver = "2"
