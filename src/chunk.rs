@@ -105,15 +105,9 @@ fn create_cube(pos: Vec3, voxel_map:VoxelMap) -> Mesh {
 
                 for (i, face) in voxel_data::INDICES.iter().enumerate() {
                     if !(check_voxel(pos + voxel_data::FACE_CHECKS[i], voxel_map)) {
-                        indices.push(face[0]);
-                        indices.push(face[1]);
-                        indices.push(face[2]);
-                        indices.push(face[0]);
-                        indices.push(face[3]);
-                        indices.push(face[1]);
-                        // for triangle_index in face.iter() {
-                        //     indices.push(*triangle_index);
-                        // }
+                        for triangle_index in face.iter() {
+                            indices.push(*triangle_index);
+                        }
                     }
         }
     }

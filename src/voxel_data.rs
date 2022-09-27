@@ -24,12 +24,12 @@ pub const FACE_CHECKS: [Vec3; 6] = [
         Vec3::new(0.0, 0.0, -1.0), // left face
 ];
 
-pub const INDICES: [[u32; 4]; 6] = [
-        [0, 2, 1, 3], // front face
-        [7, 5, 6, 4], // back face
-        [1, 6, 5, 2], // top face
-        [3, 4, 7, 0], // bottom face
-        [3, 6, 2, 7], // right face
-        [4, 1, 5, 0], // left face
+pub const INDICES: [[u32; 6]; 6] = [
+        [0, 2, 1, 0, 3, 2], // front face
+        [7, 5, 6, 7, 4, 5], // back face
+        [1, 6, 5, 1, 2, 6], // top face
+        [3, 4, 7, 3, 0, 4], // bottom face
+        [3, 6, 2, 3, 7, 6], // right face
+        [4, 1, 5, 4, 0, 1], // left face
     ];
 
