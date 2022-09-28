@@ -39,7 +39,9 @@ fn check_voxel(pos: Vec3, voxel_map: VoxelMap) -> bool {
     let y:i32  = pos.y.floor() as i32;
     let z:i32  = pos.z.floor() as i32;
 
-    if  x < 0 || x as usize > voxel_data::RENDER_WIDTH*voxel_data::CHUNK_WIDTH - 1  || y < 0 ||  y as usize > voxel_data::CHUNK_HEIGHT - 1 || z < 0 || z as usize > voxel_data::RENDER_WIDTH*voxel_data::CHUNK_WIDTH - 1 {
+    if  x < 0 || x as usize > voxel_data::RENDER_WIDTH*voxel_data::CHUNK_WIDTH - 1
+              || y < 0 ||  y as usize > voxel_data::CHUNK_HEIGHT - 1 || z < 0
+              || z as usize > voxel_data::RENDER_WIDTH*voxel_data::CHUNK_WIDTH - 1 {
          return false;
     }
 
@@ -67,10 +69,7 @@ fn create_mesh(
                 ..Default::default()
             })
             .with_children(|parent| {
-                for (x, z) in (0..voxel_data::CHUNK_WIDTH).cartesian_product(0..voxel_data::CHUNK_WIDTH) {
-                    for y in 0..voxel_data::CHUNK_HEIGHT {
-                        let pos = Vec3::new(x as f32, y as f32, z as f32);
-                            let mesh_handle = meshes.add(create_cube(pos+chunk_pos, voxel_map));
+                            let mesh_handle = meshes.add(create_cube(chunk_pos, voxel_map));
                             let material_handle = materials.add(StandardMaterial {
                                 base_color: Color::rgb(0.7, 0.8, 0.9, ).into(),
                                 perceptual_roughness: 1.,
@@ -80,35 +79,42 @@ fn create_mesh(
                                 .spawn_bundle(PbrBundle {
                                     mesh: mesh_handle,
                                     material: material_handle,
-                                    transform: Transform::from_translation(pos),
+                                    // transform: Transform::from_translation(pos),
                                     ..default()
                                 })
-                                .insert(Name::new(format!("{}, {},{}", x, y, z)))
+                                // .insert(Name::new(format!("{}, {},{}", x, y, z)))
                                 .insert(Wireframe);
-                    }
-                }
             })
             .insert(Name::new("Chunk"));
     }
 }
 
-fn create_cube(pos: Vec3, voxel_map:VoxelMap) -> Mesh {
+fn create_cube(chunk_pos: Vec3, voxel_map:VoxelMap) -> Mesh {
     let mut positions = Vec::new();
     let mut normals = Vec::new();
     let mut indices = Vec::new();
+    let mut index: u32 = 0;
 
-            if check_voxel(pos, voxel_map) {
+    for (x, z) in (0..voxel_data::CHUNK_WIDTH).cartesian_product(0..voxel_data::CHUNK_WIDTH) {
+        for y in 0..voxel_data::CHUNK_HEIGHT {
+
+            let pos = Vec3::new(x as f32, y as f32, z as f32);
+
+            if check_voxel(chunk_pos + pos, voxel_map) {
                 for position in voxel_data::VERTS.iter() {
-                    positions.push((position).to_array());
+                    positions.push((*position + pos).to_array());
                     normals.push([0.0, 1.0, 0.0])
                 }
 
                 for (i, face) in voxel_data::INDICES.iter().enumerate() {
-                    if !(check_voxel(pos + voxel_data::FACE_CHECKS[i], voxel_map)) {
+                    if !(check_voxel(chunk_pos + pos + voxel_data::FACE_CHECKS[i], voxel_map)) {
                         for triangle_index in face.iter() {
-                            indices.push(*triangle_index);
+                            indices.push(*triangle_index+8*index);
                         }
                     }
+                }
+                index += 1;
+            }
         }
     }
 
