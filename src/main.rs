@@ -1,4 +1,4 @@
-use bevy::{prelude::*, pbr::wireframe::WireframePlugin};
+use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_atmosphere::prelude::*;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_inspector_egui::WorldInspectorPlugin;
@@ -14,6 +14,7 @@ fn main() {
     App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(ClearColor(Color::rgb(0.2, 0.2, 0.2)))
+        .insert_resource(ImageSettings::default_nearest())
         .insert_resource(WindowDescriptor {
             width: WIDTH,
             height: HEIGHT,
@@ -24,19 +25,18 @@ fn main() {
         })
         // .insert_resource(Atmosphere::default()) // Default Atmosphere material, we can edit it to simulate another planet
         // .insert_resource(CycleTimer(Timer::new(
-        //     bevy::utils::Duration::from_millis(50), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
+        //     bevy::utils::Duration::from_millis(100), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
         //     true,
         // )))
         .add_plugins(DefaultPlugins)
         // Inspector setup
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(NoCameraPlayerPlugin)
-        .add_plugin(WireframePlugin)
+        // .add_plugin(WireframePlugin)
         .add_plugin(AtmospherePlugin)
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        .add_plugin(EntityCountDiagnosticsPlugin::default())
-        // .add_startup_system(spawn_light)
+        .add_startup_system(spawn_light)
         .add_startup_system(spawn_camera)
         .add_startup_system(chunk::spawn_chunk)
         // .add_system(daylight_cycle)
@@ -94,18 +94,20 @@ fn spawn_camera(mut commands: Commands) {
 // }
 
 
-//fn spawn_light(mut commands: Commands) {
-    //commands
-        //.spawn_bundle(PointLightBundle {
-            //point_light: PointLight {
-                //intensity: 1500.0,
-                //shadows_enabled: true,
-                //..default()
-            //},
-            //transform: Transform::from_xyz(0.0, 10.0, 0.0),
-            //..default()
-        //})
-        //.insert(Name::new("Light"));
-//}
+fn spawn_light(mut commands: Commands) {
+    commands
+        .spawn_bundle(PointLightBundle {
+            point_light: PointLight {
+                intensity: 30000.0,
+                shadows_enabled: true,
+                range: 100.0,
+                radius: 100.0,
+                ..default()
+            },
+            transform: Transform::from_xyz(16.0, 30.0, 16.0),
+            ..default()
+        })
+        .insert(Name::new("Light"));
+}
 
 
