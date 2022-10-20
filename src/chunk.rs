@@ -40,7 +40,7 @@ fn create_mesh(
     ){
 
     let mut chunk_pos = Vec3::new(0.0, 0.0, 0.0);
-    let texture_handle: Handle<Image> = asset_server.load("stone.png");
+    let texture_handle: Handle<Image> = asset_server.load("textures/grass_side.png");
 
     for (x, z) in (0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).step_by(voxel_data::CHUNK_WIDTH)
         .cartesian_product(0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).step_by(voxel_data::CHUNK_WIDTH) {
