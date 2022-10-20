@@ -9,6 +9,7 @@ pub const WIDTH: f32 = 1920.0;
 
 mod chunk;
 mod voxel_data;
+mod world;
 
 fn main() {
     App::new()
