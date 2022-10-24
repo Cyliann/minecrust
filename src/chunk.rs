@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use noise::{NoiseFn, Perlin};
 use itertools::Itertools;
+use crate::block_types;
 
 use super::world;
 use super::voxel_data;
@@ -17,7 +18,7 @@ pub fn spawn_chunk(commands: Commands,
 fn populate_voxel_map() -> world::VoxelMap {
 
     let mut voxel_map = world::VoxelMap{
-        voxels: [[[false; voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH]; voxel_data::CHUNK_HEIGHT]; voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH]
+        voxels: [[[0; voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH]; voxel_data::CHUNK_HEIGHT]; voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH]
     };
 
     let noise = Perlin::new();
@@ -25,7 +26,7 @@ fn populate_voxel_map() -> world::VoxelMap {
 
     for (x, z) in (0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).cartesian_product(0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH) {
             for y in 0..voxel_data::CHUNK_HEIGHT {
-                voxel_map.voxels[x][y][z] = y < (voxel_data::CHUNK_HEIGHT as f64 * (noise.get([x as f64 / scale, z as f64 / scale]) + 1.)/2.).floor() as usize;
+                voxel_map.voxels[x][y][z] = 1; //y < (voxel_data::CHUNK_HEIGHT as f64 * (noise.get([x as f64 / scale, z as f64 / scale]) + 1.)/2.).floor() as usize;
             }
     }
     voxel_map
@@ -78,5 +79,5 @@ pub fn check_voxel(pos: Vec3, voxel_map: world::VoxelMap) -> bool {
         return false;
     }
 
-    voxel_map.voxels[x as usize][y as usize][z as usize]
+    block_types::BLOCKTYPES[voxel_map.voxels[x as usize][y as usize][z as usize] as usize].is_solid
 }
