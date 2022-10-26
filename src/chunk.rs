@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use noise::{NoiseFn, Perlin};
 use itertools::Itertools;
-use crate::block_types;
 
 use super::world;
 use super::voxel_data;
+use super::block_types;
 
 pub fn spawn_chunk(commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
@@ -26,7 +26,9 @@ fn populate_voxel_map() -> world::VoxelMap {
 
     for (x, z) in (0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).cartesian_product(0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH) {
             for y in 0..voxel_data::CHUNK_HEIGHT {
-                voxel_map.voxels[x][y][z] = 1; //y < (voxel_data::CHUNK_HEIGHT as f64 * (noise.get([x as f64 / scale, z as f64 / scale]) + 1.)/2.).floor() as usize;
+                if y < (voxel_data::CHUNK_HEIGHT as f64 * (noise.get([x as f64 / scale, z as f64 / scale]) + 1.)/2.).floor() as usize {
+                    voxel_map.voxels[x][y][z] = 3;
+                }
             }
     }
     voxel_map
@@ -41,7 +43,7 @@ fn create_mesh(
     ){
 
     let mut chunk_pos = Vec3::new(0.0, 0.0, 0.0);
-    let texture_handle: Handle<Image> = asset_server.load("textures/grass_side.png");
+    let texture_handle: Handle<Image> = asset_server.load("texture_atlas.png");
 
     for (x, z) in (0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).step_by(voxel_data::CHUNK_WIDTH)
         .cartesian_product(0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).step_by(voxel_data::CHUNK_WIDTH) {

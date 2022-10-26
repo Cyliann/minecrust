@@ -2,7 +2,7 @@ use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_atmosphere::prelude::*;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_inspector_egui::WorldInspectorPlugin;
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin, EntityCountDiagnosticsPlugin};
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
 pub const HEIGHT: f32 = 1080.0;
 pub const WIDTH: f32 = 1920.0;
@@ -20,7 +20,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: WIDTH,
             height: HEIGHT,
-            title: "Jebać Knura".to_string(),
+            title: "MinecRust".to_string(),
             resizable: true,
             //mode: WindowMode::BorderlessFullscreen,
             ..Default::default()
