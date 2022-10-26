@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use noise::{NoiseFn, Perlin};
 use itertools::Itertools;
+use std::cmp::{Ord, Ordering};
 
 use super::world;
 use super::voxel_data;
@@ -26,8 +27,20 @@ fn populate_voxel_map() -> world::VoxelMap {
 
     for (x, z) in (0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).cartesian_product(0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH) {
             for y in 0..voxel_data::CHUNK_HEIGHT {
-                if y < (voxel_data::CHUNK_HEIGHT as f64 * (noise.get([x as f64 / scale, z as f64 / scale]) + 1.)/2.).floor() as usize {
-                    voxel_map.voxels[x][y][z] = 3;
+                let threshold = (voxel_data::CHUNK_HEIGHT as f64 * (noise.get([x as f64 / scale, z as f64 / scale]) + 1.)/2.).floor() as usize;
+                match y.cmp(&threshold) {
+                    Ordering::Less =>
+                        if y == 0 {
+                            voxel_map.voxels[x][y][z] = 2;
+                        }
+                        else if (threshold - y) == 1 {
+                            voxel_map.voxels[x][y][z] = 4;
+                        }
+                        else {
+                            voxel_map.voxels[x][y][z] = 1;
+                        },
+                    Ordering::Greater => (),
+                    Ordering::Equal => voxel_map.voxels[x][y][z] = 3,
                 }
             }
     }

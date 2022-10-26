@@ -7,7 +7,7 @@ use super::chunk;
 use super::block_types;
 
 pub const CHUNK_WIDTH: usize = 16;
-pub const CHUNK_HEIGHT: usize = 16;
+pub const CHUNK_HEIGHT: usize = 32;
 pub const RENDER_DISTANCE: usize = 4;
 
 pub const VERTICES: [[Vec3; 4]; 6] = [

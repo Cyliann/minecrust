@@ -4,7 +4,7 @@ pub struct BlockType {
     pub texture_id: Option<[u32; 6]>, //front, back, top, bottom, right, left
 }
 
-pub const BLOCKTYPES: [BlockType; 4] = [
+pub const BLOCKTYPES: [BlockType; 5] = [
     BlockType {
         name: "air",
         is_solid: false,
@@ -24,5 +24,10 @@ pub const BLOCKTYPES: [BlockType; 4] = [
         name: "grass",
         is_solid: true,
         texture_id: Some([2, 2, 7, 1, 2, 2]),
+    },
+    BlockType {
+        name: "dirt",
+        is_solid: true,
+        texture_id: Some([1, 1, 1, 1, 1, 1]),
     },
 ];
