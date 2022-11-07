@@ -40,7 +40,7 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_startup_system(spawn_light)
         .add_startup_system(spawn_camera)
-        .add_startup_system(chunk::spawn_chunk)
+        .add_startup_system(world::spawn_world)
         // .add_system(daylight_cycle)
         .run();
 }
@@ -100,13 +100,13 @@ fn spawn_light(mut commands: Commands) {
     commands
         .spawn_bundle(PointLightBundle {
             point_light: PointLight {
-                intensity: 30000.0,
+                intensity: 3000.0,
                 shadows_enabled: true,
-                range: 100.0,
-                radius: 100.0,
+                range: 1000.0,
+                radius: 1000.0,
                 ..default()
             },
-            transform: Transform::from_xyz(16.0, 30.0, 16.0),
+            transform: Transform::from_xyz(32.0, 200.0, 32.0),
             ..default()
         })
         .insert(Name::new("Light"));

@@ -1,69 +1,27 @@
+use bevy::pbr::wireframe::Wireframe;
 use bevy::prelude::*;
-use noise::{NoiseFn, Perlin};
-use itertools::Itertools;
-use std::cmp::{Ord, Ordering};
-
 use super::world;
 use super::voxel_data;
 use super::block_types;
 
-pub fn spawn_chunk(commands: Commands,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>
-) {
-        create_mesh(commands, meshes, materials, asset_server, populate_voxel_map());
-
+pub struct Chunk {
+    pub position: Vec3,
 }
 
-fn populate_voxel_map() -> world::VoxelMap {
+impl Chunk {
+    pub fn spawn_chunk(self,
+                       commands: &mut Commands,
+                       meshes: &mut ResMut<Assets<Mesh>>,
+                       materials: &mut ResMut<Assets<StandardMaterial>>,
+                       asset_server: &mut Res<AssetServer>,
+                       voxel_map: world::VoxelMap,
+    ) {
+        let mesh_handle = meshes.add(voxel_data::create_voxel(self.position, voxel_map));
 
-    let mut voxel_map = world::VoxelMap{
-        voxels: [[[0; voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH]; voxel_data::CHUNK_HEIGHT]; voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH]
-    };
+        let texture_handle: Handle<Image> = asset_server.load("texture_atlas.png");
 
-    let noise = Perlin::new();
-    let scale = 20.;
 
-    for (x, z) in (0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).cartesian_product(0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH) {
-            for y in 0..voxel_data::CHUNK_HEIGHT {
-                let threshold = (voxel_data::CHUNK_HEIGHT as f64 * (noise.get([x as f64 / scale, z as f64 / scale]) + 1.)/2.).floor() as usize;
-                match y.cmp(&threshold) {
-                    Ordering::Less =>
-                        if y == 0 {
-                            voxel_map.voxels[x][y][z] = 2;
-                        }
-                        else if (threshold - y) == 1 {
-                            voxel_map.voxels[x][y][z] = 4;
-                        }
-                        else {
-                            voxel_map.voxels[x][y][z] = 1;
-                        },
-                    Ordering::Greater => (),
-                    Ordering::Equal => voxel_map.voxels[x][y][z] = 3,
-                }
-            }
-    }
-    voxel_map
-}
-
-fn create_mesh(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
-    voxel_map: world::VoxelMap,
-    ){
-
-    let mut chunk_pos = Vec3::new(0.0, 0.0, 0.0);
-    let texture_handle: Handle<Image> = asset_server.load("texture_atlas.png");
-
-    for (x, z) in (0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).step_by(voxel_data::CHUNK_WIDTH)
-        .cartesian_product(0..voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH).step_by(voxel_data::CHUNK_WIDTH) {
-        chunk_pos.x = x as f32;
-        chunk_pos.z = z as f32;
-
-        let mesh_handle = meshes.add(voxel_data::create_voxel(chunk_pos, voxel_map));
+        let chunk_pos = self.position;
         let material_handle = materials.add(StandardMaterial {
             base_color_texture: Some(texture_handle.clone()),
             perceptual_roughness: 1.0,
@@ -79,7 +37,8 @@ fn create_mesh(
                 transform: Transform::from_translation(chunk_pos),
                 ..Default::default()
             })
-            .insert(Name::new(format!("Chunk {} {} {}", chunk_pos.x, chunk_pos.y, chunk_pos.z)));
+            .insert(Name::new(format!("Chunk ({}, {}, {})", chunk_pos.x, chunk_pos.y, chunk_pos.z)))
+            .insert(Wireframe);
     }
 }
 

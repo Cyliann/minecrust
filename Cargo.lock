@@ -1625,18 +1625,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "game"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy-inspector-egui",
- "bevy_atmosphere",
- "bevy_flycam",
- "itertools",
- "noise",
-]
-
-[[package]]
 name = "gethostname"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2234,6 +2222,18 @@ dependencies = [
  "foreign-types",
  "log",
  "objc",
+]
+
+[[package]]
+name = "minecrust"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_atmosphere",
+ "bevy_flycam",
+ "itertools",
+ "noise",
 ]
 
 [[package]]
