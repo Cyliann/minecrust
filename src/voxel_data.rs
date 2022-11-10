@@ -8,6 +8,7 @@ use super::block_types;
 
 pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_HEIGHT: usize = 32;
+pub const WORLD_SIZE_IN_CHUNKS: usize = 4;
 pub const RENDER_DISTANCE: usize = 4;
 
 pub const VERTICES: [[Vec3; 4]; 6] = [
@@ -66,7 +67,7 @@ pub const NORMALS: [Vec3; 6] = [
         Vec3::new(0.0, 0.0, 1.0),   // left face
 ];
 
-pub fn create_voxel(chunk_pos: Vec3, voxel_map: world::VoxelMap) -> Mesh {
+pub fn create_voxel(chunk_pos: Vec3, voxel_map: &world::VoxelMap) -> Mesh {
         let mut positions = Vec::new();
         let mut indices = Vec::new();
         let mut normals = Vec::new();
