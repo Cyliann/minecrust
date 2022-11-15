@@ -1,14 +1,14 @@
 use bevy::prelude::{Vec3, Vec2, Mesh};
 use bevy::render::mesh::{self, PrimitiveTopology};
 use itertools::Itertools;
+use crate::world::WORLD_SIZE;
 
 use super::world;
-use super::chunk;
 use super::block_types;
 
 pub const CHUNK_WIDTH: usize = 16;
-pub const CHUNK_HEIGHT: usize = 32;
-pub const WORLD_SIZE_IN_CHUNKS: usize = 4;
+pub const CHUNK_HEIGHT: usize = 16;
+pub const WORLD_SIZE_IN_CHUNKS: usize = 8;
 pub const RENDER_DISTANCE: usize = 4;
 
 pub const VERTICES: [[Vec3; 4]; 6] = [
@@ -67,22 +67,25 @@ pub const NORMALS: [Vec3; 6] = [
         Vec3::new(0.0, 0.0, 1.0),   // left face
 ];
 
-pub fn create_voxel(chunk_pos: Vec3, voxel_map: &world::VoxelMap) -> Mesh {
+pub fn create_mesh(mut chunk_pos: Vec3, voxel_map: &world::VoxelMap) -> Mesh {
         let mut positions = Vec::new();
         let mut indices = Vec::new();
         let mut normals = Vec::new();
         let mut uvs = Vec::new();
         let mut index: u32 = 0;
+        chunk_pos += Vec3::new((WORLD_SIZE/2) as f32, 0.0, (WORLD_SIZE/2) as f32);
 
         for (x, z) in (0..CHUNK_WIDTH).cartesian_product(0..CHUNK_WIDTH) {
                 for y in 0..CHUNK_HEIGHT {
 
                         let pos = Vec3::new(x as f32, y as f32, z as f32);
 
-                        if chunk::check_voxel(chunk_pos + pos, voxel_map) {
-                                let blocktype = &block_types::BLOCKTYPES[voxel_map.voxels[x + chunk_pos.x as usize][y + chunk_pos.y as usize][z + chunk_pos.z as usize] as usize];
+                        if check_voxel(chunk_pos + pos, voxel_map) {
+                                let blocktype = &block_types::BLOCKTYPES[voxel_map.voxels[[x + chunk_pos.x as usize, y + chunk_pos.y as usize, z + chunk_pos.z as usize]] as usize];
+                                print!("{x}, {y}, {z} {}\n", blocktype.name);
+
                                 for i in 0..6{
-                                        if !(chunk::check_voxel(chunk_pos + pos + FACE_CHECKS[i], voxel_map)) {
+                                        if !(check_voxel(chunk_pos + pos + FACE_CHECKS[i], voxel_map)) {
                                                 for position in VERTICES[i].iter() {
                                                         positions.push((*position + pos).to_array());
                                                         normals.push(NORMALS[i].to_array());
@@ -106,6 +109,20 @@ pub fn create_voxel(chunk_pos: Vec3, voxel_map: &world::VoxelMap) -> Mesh {
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
         mesh.set_indices(Some(mesh::Indices::U32(indices)));
         mesh
+}
+
+pub fn check_voxel(pos: Vec3, voxel_map: &world::VoxelMap) -> bool {
+        let x = pos.x as i32;
+        let y = pos.y as i32;
+        let z = pos.z as i32;
+
+        if x > WORLD_SIZE as i32 - 1 || x < 0
+            || y > CHUNK_HEIGHT as i32 - 1 || y < 0
+            || z > WORLD_SIZE as i32 - 1 || z < 0 {
+                return false;
+        }
+
+        block_types::BLOCKTYPES[voxel_map.voxels[[x as usize, y as usize, z as usize]] as usize].is_solid
 }
 
 fn add_texture(texture_id: u32) -> [Vec2; 4]{

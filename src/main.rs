@@ -30,6 +30,7 @@ fn main() {
             bevy::utils::Duration::from_millis(100), // Update our atmosphere every 50ms (in a real game, this would be much slower, but for the sake of an example we use a faster update)
             true,
         )))
+        // .insert_resource(VoxelMap::new())
         .add_plugins(DefaultPlugins)
         // Inspector setup
         .add_plugin(WorldInspectorPlugin::new())
@@ -75,7 +76,7 @@ fn daylight_cycle(
     timer.0.tick(time.delta());
 
     if timer.0.finished() {
-        let t = time.time_since_startup().as_millis() as f32 / 20000.0;
+        let t = time.time_since_startup().as_millis() as f32 / 2000.0;
         atmosphere.sun_position = Vec3::new(0., t.sin(), t.cos());
 
         if let Some((mut light_trans, mut directional)) = query.single_mut().into() {
@@ -89,7 +90,7 @@ fn spawn_light(mut commands: Commands){
     // Our Sun
     commands
         .spawn_bundle(DirectionalLightBundle {
-            directional_light: DirectionalLight {shadows_enabled: true, ..default()},
+            // directional_light: DirectionalLight {shadows_enabled: true, ..default()},
             ..Default::default()
         })
         .insert(Sun); // Marks the light as Sun

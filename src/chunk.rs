@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use super::world;
 use super::voxel_data;
-use super::block_types;
 
 pub struct Chunk {
     pub position: Vec3,
@@ -9,7 +8,7 @@ pub struct Chunk {
 }
 
 pub fn spawn_chunk(
-    position: Vec3,
+    pos: Vec3,
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
@@ -17,12 +16,10 @@ pub fn spawn_chunk(
     voxel_map: &world::VoxelMap,
 ) -> Entity {
 
-    let mesh_handle = meshes.add(voxel_data::create_voxel(position, voxel_map));
-
+    let mesh_handle = meshes.add(voxel_data::create_mesh(pos, voxel_map));
     let texture_handle: Handle<Image> = asset_server.load("texture_atlas.png");
+    let chunk_pos = pos;
 
-
-    let chunk_pos = position;
     let material_handle = materials.add(StandardMaterial {
         base_color_texture: Some(texture_handle.clone()),
         perceptual_roughness: 1.0,
@@ -42,16 +39,3 @@ pub fn spawn_chunk(
         .id()
 }
 
-pub fn check_voxel(pos: Vec3, voxel_map: &world::VoxelMap) -> bool {
-    let x:i32  = pos.x.floor() as i32;
-    let y:i32  = pos.y.floor() as i32;
-    let z:i32  = pos.z.floor() as i32;
-
-    if  x < 0 || x as usize > voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH - 1
-        || y < 0 ||  y as usize > voxel_data::CHUNK_HEIGHT - 1 || z < 0
-        || z as usize > voxel_data::RENDER_DISTANCE *voxel_data::CHUNK_WIDTH - 1 {
-        return false;
-    }
-
-    block_types::BLOCKTYPES[voxel_map.voxels[x as usize][y as usize][z as usize] as usize].is_solid
-}

@@ -15,6 +15,7 @@ bevy-inspector-egui = "0.12.1"
 bevy_atmosphere = "0.4.0"
 bevy_flycam = "*"
 itertools = "0.10.3"
+ndarray = "0.15.6"
 noise = "0.7.0"
 
 [workspace]
