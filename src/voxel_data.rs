@@ -1,15 +1,15 @@
 use crate::world::{ChunkCoord, VoxelMap, WORLD_SIZE};
 use bevy::prelude::{Mesh, ResMut, Vec2, Vec3};
 use bevy::render::mesh::{self, PrimitiveTopology};
-use itertools::Itertools;
+use itertools::iproduct;
 
 use super::block_types;
 use super::world;
 
 pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_HEIGHT: usize = 32;
-pub const WORLD_SIZE_IN_CHUNKS: usize = 16;
-pub const RENDER_DISTANCE: usize = 4;
+pub const WORLD_SIZE_IN_CHUNKS: usize = 32;
+pub const RENDER_DISTANCE: usize = 8;
 
 pub const VERTICES: [[Vec3; 4]; 6] = [
     [
@@ -78,45 +78,43 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<VoxelMap>) -> 
     let mut normals = Vec::new();
     let mut uvs = Vec::new();
     let mut index: u32 = 0;
-    let chunk_pos_in_blocks = Vec3::new(
+    let shifted_chunk_pos_in_blocks = Vec3::new(
         (chunk_pos.x * CHUNK_WIDTH as i32 + (WORLD_SIZE/2) as i32) as f32,
         0.0,
         (chunk_pos.z * CHUNK_WIDTH as i32 + (WORLD_SIZE/2) as i32) as f32,
     );
 
-    for (x, z) in (0..CHUNK_WIDTH).cartesian_product(0..CHUNK_WIDTH) {
-        for y in 0..CHUNK_HEIGHT {
-            let pos = Vec3::new(x as f32, y as f32, z as f32);
+    for (x, y, z) in iproduct!((0..CHUNK_WIDTH), (0..CHUNK_HEIGHT), (0..CHUNK_WIDTH)) {
+        let pos = Vec3::new(x as f32, y as f32, z as f32);
 
-            if check_voxel(chunk_pos_in_blocks + pos, voxel_map) {
-                let block_type = &block_types::BLOCKTYPES[voxel_map.voxels[[
-                    x + chunk_pos_in_blocks.x as usize,
-                    y,
-                    z + chunk_pos_in_blocks.z as usize,
-                ]] as usize];
+        if check_voxel(shifted_chunk_pos_in_blocks + pos, voxel_map) {
+            let block_type = &block_types::BLOCKTYPES[voxel_map.voxels[[
+                x + shifted_chunk_pos_in_blocks.x as usize,
+                y,
+                z + shifted_chunk_pos_in_blocks.z as usize,
+            ]] as usize];
 
-                for i in 0..6 {
-                    if !(check_voxel(
-                        Vec3::new(
-                            chunk_pos_in_blocks.x as f32,
-                            0.0,
-                            chunk_pos_in_blocks.z as f32,
-                        ) + pos
-                            + FACE_CHECKS[i],
-                        voxel_map,
-                    )) {
-                        for position in VERTICES[i].iter() {
-                            positions.push((*position + pos).to_array());
-                            normals.push(NORMALS[i].to_array());
-                        }
-                        for triangle_index in INDICES.iter() {
-                            indices.push(*triangle_index + index);
-                        }
-                        for uv in add_texture(block_type.texture_id.unwrap()[i]) {
-                            uvs.push(uv.to_array());
-                        }
-                        index += 4;
+            for i in 0..6 {
+                if !(check_voxel(
+                    Vec3::new(
+                        shifted_chunk_pos_in_blocks.x as f32,
+                        0.0,
+                        shifted_chunk_pos_in_blocks.z as f32,
+                    ) + pos
+                        + FACE_CHECKS[i],
+                    voxel_map,
+                )) {
+                    for position in VERTICES[i].iter() {
+                        positions.push((*position + pos).to_array());
+                        normals.push(NORMALS[i].to_array());
                     }
+                    for triangle_index in INDICES.iter() {
+                        indices.push(*triangle_index + index);
+                    }
+                    for uv in add_texture(block_type.texture_id.unwrap()[i]) {
+                        uvs.push(uv.to_array());
+                    }
+                    index += 4;
                 }
             }
         }

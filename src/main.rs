@@ -32,6 +32,7 @@ fn main() {
         .insert_resource(world::VoxelMap::new())
         .insert_resource(world::ChunkMap::new())
         .insert_resource(world::ActiveChunks::new())
+        .insert_resource(world::PlayerLastChunk::new())
         .add_plugins(DefaultPlugins)
         // Inspector setup
         .add_plugin(WorldInspectorPlugin::new())
