@@ -3,31 +3,17 @@ use crate::voxel_data::{self, CHUNK_WIDTH, RENDER_DISTANCE, WORLD_SIZE_IN_CHUNKS
 use bevy::prelude::*;
 use itertools::{iproduct, Itertools};
 use ndarray::{Array2, Array3};
-use noise::{NoiseFn, Perlin};
+use noise::{BasicMulti, NoiseFn};
 use std::cmp::{Ord, Ordering};
 
 pub const WORLD_SIZE: usize = WORLD_SIZE_IN_CHUNKS * CHUNK_WIDTH;
 pub const TEXTURE_ATLAS_SIZE_IN_BLOCKS: u8 = 4;
 pub const NORMALIZED_BLOCK_TEXTURE_SIZE: f32 = 1.0 / TEXTURE_ATLAS_SIZE_IN_BLOCKS as f32;
 
-pub struct PlayerLastChunk(ChunkCoord);
-
-impl PlayerLastChunk {
-    pub fn new() -> Self {
-        PlayerLastChunk(ChunkCoord {x: 0, z: 0})
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct ActiveChunks(Vec<ChunkCoord>);
-
 pub struct SpawnChunkEvent(ChunkCoord);
-
-impl ActiveChunks {
-    pub fn new() -> Self {
-        ActiveChunks(Vec::new())
-    }
-}
+pub struct PlayerLastChunk(ChunkCoord);
 
 #[derive(Clone, Copy, Debug)]
 pub struct ChunkCoord {
@@ -35,15 +21,30 @@ pub struct ChunkCoord {
     pub z: i32,
 }
 
-impl ChunkCoord {
-    pub fn equals(self, other: ChunkCoord) -> bool {
-        return other.x == self.x && other.z == self.z
-    }
-}
-
 #[derive(Clone, Debug, Default)]
 pub struct VoxelMap {
     pub voxels: Array3<u8>,
+}
+
+#[derive(Default, Debug)]
+pub struct ChunkMap(pub Array2<Option<Entity>>);
+
+impl PlayerLastChunk {
+    pub fn new() -> Self {
+        PlayerLastChunk(ChunkCoord { x: 0, z: 0 })
+    }
+}
+
+impl ActiveChunks {
+    pub fn new() -> Self {
+        ActiveChunks(Vec::new())
+    }
+}
+
+impl ChunkCoord {
+    pub fn equals(self, other: ChunkCoord) -> bool {
+        return other.x == self.x && other.z == self.z;
+    }
 }
 
 impl VoxelMap {
@@ -54,10 +55,14 @@ impl VoxelMap {
     }
 
     fn populate_voxel_map(&mut self) {
-        let noise = Perlin::new();
-        let scale = 40.;
+        let noise = BasicMulti::new();
+        let scale = 80.;
 
-        for (x, y, z) in iproduct!((0..WORLD_SIZE), (0..voxel_data::CHUNK_HEIGHT), (0..WORLD_SIZE)) {
+        for (x, y, z) in iproduct!(
+            (0..WORLD_SIZE),
+            (0..voxel_data::CHUNK_HEIGHT),
+            (0..WORLD_SIZE)
+        ) {
             let threshold = (voxel_data::CHUNK_HEIGHT as f64
                 * (noise.get([x as f64 / scale, z as f64 / scale]) + 1.)
                 / 2.)
@@ -78,9 +83,6 @@ impl VoxelMap {
         }
     }
 }
-
-#[derive(Default, Debug)]
-pub struct ChunkMap(pub Array2<Option<Entity>>);
 
 impl ChunkMap {
     pub fn new() -> Self {
@@ -119,12 +121,11 @@ pub fn spawn_chunk(
     mut active_chunks: ResMut<ActiveChunks>,
 ) {
     for ev in ev_spawn_chunk.iter() {
-
         if chunk_map.0[[
             (&ev.0.x + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize,
             (&ev.0.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize,
         ]] == None
- {
+        {
             Chunk::new(
                 &ev.0,
                 &mut commands,
@@ -145,7 +146,7 @@ pub fn check_render_distance(
     mut chunk_map: ResMut<ChunkMap>,
     mut ev_spawn_chunk: EventWriter<SpawnChunkEvent>,
     mut active_chunks: ResMut<ActiveChunks>,
-    mut player_last_chunk: ResMut<PlayerLastChunk>
+    mut player_last_chunk: ResMut<PlayerLastChunk>,
 ) {
     let player_pos = query.single().0.translation();
     let chunk_pos = get_chunk_from_player_pos(player_pos);

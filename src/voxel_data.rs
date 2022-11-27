@@ -7,7 +7,7 @@ use super::block_types;
 use super::world;
 
 pub const CHUNK_WIDTH: usize = 16;
-pub const CHUNK_HEIGHT: usize = 32;
+pub const CHUNK_HEIGHT: usize = 64;
 pub const WORLD_SIZE_IN_CHUNKS: usize = 32;
 pub const RENDER_DISTANCE: usize = 8;
 
@@ -60,7 +60,7 @@ pub const FACE_CHECKS: [Vec3; 6] = [
 ];
 
 pub const INDICES: [u32; 6] = [
-    0, 2, 1, 0, 3, 2, // front face
+    0, 2, 1, 0, 3, 2,
 ];
 
 pub const NORMALS: [Vec3; 6] = [
@@ -79,9 +79,9 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<VoxelMap>) -> 
     let mut uvs = Vec::new();
     let mut index: u32 = 0;
     let shifted_chunk_pos_in_blocks = Vec3::new(
-        (chunk_pos.x * CHUNK_WIDTH as i32 + (WORLD_SIZE/2) as i32) as f32,
+        (chunk_pos.x * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as f32,
         0.0,
-        (chunk_pos.z * CHUNK_WIDTH as i32 + (WORLD_SIZE/2) as i32) as f32,
+        (chunk_pos.z * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as f32,
     );
 
     for (x, y, z) in iproduct!((0..CHUNK_WIDTH), (0..CHUNK_HEIGHT), (0..CHUNK_WIDTH)) {
