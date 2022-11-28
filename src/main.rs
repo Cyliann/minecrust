@@ -1,6 +1,7 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::{prelude::*, render::texture::ImageSettings};
 // use bevy::window::PresentMode::Immediate;
+use crate::voxel_data::WORLD_SIZE_IN_CHUNKS;
 use bevy_atmosphere::prelude::*;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
 use bevy_inspector_egui::WorldInspectorPlugin;
@@ -12,6 +13,7 @@ mod block_types;
 mod chunk;
 mod voxel_data;
 mod world;
+mod voxel_map;
 
 fn main() {
     App::new()
@@ -28,10 +30,13 @@ fn main() {
             //mode: WindowMode::BorderlessFullscreen,
             ..Default::default()
         })
-        .insert_resource(world::VoxelMap::new())
+        .insert_resource(voxel_map::VoxelMap::new())
         .insert_resource(world::ChunkMap::new())
         .insert_resource(world::ActiveChunks::new())
         .insert_resource(world::PlayerLastChunk::new())
+        .insert_resource(world::GeneratedChunks {
+            chunks: [[false; WORLD_SIZE_IN_CHUNKS]; WORLD_SIZE_IN_CHUNKS],
+        })
         // Plugins
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new()) // Inspector setup

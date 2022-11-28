@@ -1,6 +1,7 @@
 use crate::voxel_data::{self, CHUNK_WIDTH, WORLD_SIZE_IN_CHUNKS};
-use crate::world::{ChunkCoord, ChunkMap, VoxelMap};
+use crate::world::{ChunkCoord, ChunkMap};
 use bevy::prelude::*;
+use crate::voxel_map;
 
 pub struct Chunk {
     pub position: ChunkCoord,
@@ -13,7 +14,7 @@ impl Chunk {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
         asset_server: &Res<AssetServer>,
-        voxel_map: &mut ResMut<VoxelMap>,
+        voxel_map: &mut ResMut<voxel_map::VoxelMap>,
         chunk_map: &mut ResMut<ChunkMap>,
     ) -> Self {
         let mesh_handle = meshes.add(voxel_data::create_mesh(chunk_pos, voxel_map));

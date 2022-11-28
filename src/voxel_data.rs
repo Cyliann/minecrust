@@ -1,7 +1,8 @@
-use crate::world::{ChunkCoord, VoxelMap, WORLD_SIZE};
+use crate::world::{ChunkCoord, WORLD_SIZE};
 use bevy::prelude::{Mesh, ResMut, Vec2, Vec3};
 use bevy::render::mesh::{self, PrimitiveTopology};
 use itertools::iproduct;
+use crate::voxel_map;
 
 use super::block_types;
 use super::world;
@@ -59,9 +60,7 @@ pub const FACE_CHECKS: [Vec3; 6] = [
     Vec3::new(0.0, 0.0, -1.0), // left face
 ];
 
-pub const INDICES: [u32; 6] = [
-    0, 2, 1, 0, 3, 2,
-];
+pub const INDICES: [u32; 6] = [0, 2, 1, 0, 3, 2];
 
 pub const NORMALS: [Vec3; 6] = [
     Vec3::new(-1.0, 0.0, 0.0), // front face
@@ -72,7 +71,7 @@ pub const NORMALS: [Vec3; 6] = [
     Vec3::new(0.0, 0.0, 1.0),  // left face
 ];
 
-pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<VoxelMap>) -> Mesh {
+pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::VoxelMap>) -> Mesh {
     let mut positions = Vec::new();
     let mut indices = Vec::new();
     let mut normals = Vec::new();
@@ -128,7 +127,7 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<VoxelMap>) -> 
     mesh
 }
 
-pub fn check_voxel(pos: Vec3, voxel_map: &mut ResMut<VoxelMap>) -> bool {
+pub fn check_voxel(pos: Vec3, voxel_map: &mut ResMut<voxel_map::VoxelMap>) -> bool {
     let x = pos.x as i32;
     let y = pos.y as i32;
     let z = pos.z as i32;

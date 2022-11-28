@@ -1,10 +1,9 @@
 use crate::chunk::Chunk;
-use crate::voxel_data::{self, CHUNK_WIDTH, RENDER_DISTANCE, WORLD_SIZE_IN_CHUNKS};
+use crate::voxel_data::{CHUNK_WIDTH, RENDER_DISTANCE, WORLD_SIZE_IN_CHUNKS};
 use bevy::prelude::*;
-use itertools::{iproduct, Itertools};
-use ndarray::{Array2, Array3};
-use noise::{BasicMulti, NoiseFn};
-use std::cmp::{Ord, Ordering};
+use itertools::Itertools;
+use ndarray::Array2;
+use crate::voxel_map;
 
 pub const WORLD_SIZE: usize = WORLD_SIZE_IN_CHUNKS * CHUNK_WIDTH;
 pub const TEXTURE_ATLAS_SIZE_IN_BLOCKS: u8 = 4;
@@ -15,15 +14,14 @@ pub struct ActiveChunks(Vec<ChunkCoord>);
 pub struct SpawnChunkEvent(ChunkCoord);
 pub struct PlayerLastChunk(ChunkCoord);
 
+pub struct GeneratedChunks {
+    pub chunks: [[bool; WORLD_SIZE_IN_CHUNKS]; WORLD_SIZE_IN_CHUNKS],
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct ChunkCoord {
     pub x: i32,
     pub z: i32,
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct VoxelMap {
-    pub voxels: Array3<u8>,
 }
 
 #[derive(Default, Debug)]
@@ -47,43 +45,6 @@ impl ChunkCoord {
     }
 }
 
-impl VoxelMap {
-    pub fn new() -> Self {
-        VoxelMap {
-            voxels: Array3::<u8>::from_elem((WORLD_SIZE, voxel_data::CHUNK_HEIGHT, WORLD_SIZE), 0),
-        }
-    }
-
-    fn populate_voxel_map(&mut self) {
-        let noise = BasicMulti::new();
-        let scale = 80.;
-
-        for (x, y, z) in iproduct!(
-            (0..WORLD_SIZE),
-            (0..voxel_data::CHUNK_HEIGHT),
-            (0..WORLD_SIZE)
-        ) {
-            let threshold = (voxel_data::CHUNK_HEIGHT as f64
-                * (noise.get([x as f64 / scale, z as f64 / scale]) + 1.)
-                / 2.)
-                .floor() as usize;
-            match y.cmp(&threshold) {
-                Ordering::Less => {
-                    if y == 0 {
-                        self.voxels[[x, y, z]] = 2;
-                    } else if (threshold - y) == 1 {
-                        self.voxels[[x, y, z]] = 4;
-                    } else {
-                        self.voxels[[x, y, z]] = 1;
-                    }
-                }
-                Ordering::Greater => (),
-                Ordering::Equal => self.voxels[[x, y, z]] = 3,
-            }
-        }
-    }
-}
-
 impl ChunkMap {
     pub fn new() -> Self {
         ChunkMap(Array2::<Option<Entity>>::from_elem(
@@ -93,12 +54,7 @@ impl ChunkMap {
     }
 }
 
-pub fn spawn_world(
-    mut voxel_map: ResMut<VoxelMap>,
-    mut ev_spawn_chunk: EventWriter<SpawnChunkEvent>,
-) {
-    voxel_map.populate_voxel_map();
-
+pub fn spawn_world(mut ev_spawn_chunk: EventWriter<SpawnChunkEvent>) {
     for (x, z) in (RENDER_DISTANCE as isize * -1..RENDER_DISTANCE as isize)
         .cartesian_product(RENDER_DISTANCE as isize * -1..RENDER_DISTANCE as isize)
     {
@@ -116,9 +72,10 @@ pub fn spawn_chunk(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
-    mut voxel_map: ResMut<VoxelMap>,
+    mut voxel_map: ResMut<voxel_map::VoxelMap>,
     mut chunk_map: ResMut<ChunkMap>,
     mut active_chunks: ResMut<ActiveChunks>,
+    mut generated_chunks: ResMut<GeneratedChunks>,
 ) {
     for ev in ev_spawn_chunk.iter() {
         if chunk_map.0[[
@@ -126,6 +83,12 @@ pub fn spawn_chunk(
             (&ev.0.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize,
         ]] == None
         {
+            if !generated_chunks.chunks[(&ev.0.x + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize]
+                [(&ev.0.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize]
+            {
+                voxel_map.populate_voxel_map(ev.0);
+            }
+
             Chunk::new(
                 &ev.0,
                 &mut commands,
@@ -136,6 +99,8 @@ pub fn spawn_chunk(
                 &mut chunk_map,
             );
             active_chunks.0.push(ev.0);
+            generated_chunks.chunks[(&ev.0.x + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize]
+                [(&ev.0.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize] = true;
         }
     }
 }
