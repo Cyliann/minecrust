@@ -1,5 +1,5 @@
-use crate::voxel_data::{self, CHUNK_WIDTH};
-use itertools::iproduct;
+use crate::voxel_data::{self, CHUNK_HEIGHT, CHUNK_WIDTH};
+use itertools::{iproduct, Itertools};
 use ndarray::Array3;
 use noise::{BasicMulti, NoiseFn, Perlin};
 use std::cmp::{Ord, Ordering};
@@ -26,11 +26,7 @@ impl VoxelMap {
         let shifted_x = (chunk_pos.x * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as usize;
         let shifted_z = (chunk_pos.z * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as usize;
 
-        for (x, y, z) in iproduct!(
-            (0 as usize..CHUNK_WIDTH),
-            (0..voxel_data::CHUNK_HEIGHT),
-            (0 as usize..CHUNK_WIDTH)
-        ) {
+        for (x, z) in (0 as usize..CHUNK_WIDTH+1).cartesian_product(0 as usize..CHUNK_WIDTH+1) {
             let global_x = shifted_x + x;
             let global_z = shifted_z + z;
 
@@ -38,18 +34,21 @@ impl VoxelMap {
                 * (noise.get([global_x as f64 / scale, global_z as f64 / scale]) + 1.)
                 / 2.)
                 .floor() as usize;
-            match y.cmp(&threshold) {
-                Ordering::Less => {
-                    if y == 0 {
-                        self.voxels[[global_x, y, global_z]] = 2;
-                    } else if (threshold - y) == 1 {
-                        self.voxels[[global_x, y, global_z]] = 4;
-                    } else {
-                        self.voxels[[global_x, y, global_z]] = 1;
+
+            for y in 0..CHUNK_HEIGHT {
+                match y.cmp(&threshold) {
+                    Ordering::Less => {
+                        if y == 0 {
+                            self.voxels[[global_x, y, global_z]] = 2;
+                        } else if (threshold - y) == 1 {
+                            self.voxels[[global_x, y, global_z]] = 4;
+                        } else {
+                            self.voxels[[global_x, y, global_z]] = 1;
+                        }
                     }
+                    Ordering::Greater => (),
+                    Ordering::Equal => self.voxels[[global_x, y, global_z]] = 3,
                 }
-                Ordering::Greater => (),
-                Ordering::Equal => self.voxels[[global_x, y, global_z]] = 3,
             }
         }
     }
