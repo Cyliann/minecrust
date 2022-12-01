@@ -1,10 +1,11 @@
-use crate::voxel_data::{self, CHUNK_HEIGHT, CHUNK_WIDTH};
+use crate::voxel_data::{CHUNK_HEIGHT, CHUNK_WIDTH};
 use crate::world;
 use crate::world::WORLD_SIZE;
 use itertools::Itertools;
 use ndarray::Array3;
-use noise::{BasicMulti, NoiseFn, OpenSimplex, Perlin};
+use noise::{NoiseFn, Perlin};
 use std::cmp::{Ord, Ordering};
+use splines::{Interpolation, Key, Spline};
 
 #[derive(Clone, Debug, Default)]
 pub struct VoxelMap {
@@ -20,8 +21,17 @@ impl VoxelMap {
 
     pub fn populate_voxel_map(&mut self, chunk_pos: world::ChunkCoord) {
         let noise = Perlin::new();
-        let scale = 60.;
+        let scale = 200.;
         let octave_number = 4;
+        let start = Key::new(-1., 100., Interpolation::Linear);
+        let point1 = Key::new(-0.8, 10., Interpolation::Linear);
+        let point2 = Key::new(-0.3, 10., Interpolation::Linear);
+        let point3 = Key::new(-0.2, 40., Interpolation::Linear);
+        let point4 = Key::new(0., 40., Interpolation::Linear);
+        let point5= Key::new(0.1, 100., Interpolation::Linear);
+        let point6= Key::new(0.4, 120., Interpolation::Linear);
+        let end = Key::new(1., 127., Interpolation::default());
+        let spline = Spline::from_vec(vec![start, point1, point2, point3, point4, point5, point6, end]);
 
         let shifted_x = (chunk_pos.x * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as usize;
         let shifted_z = (chunk_pos.z * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as usize;
@@ -43,9 +53,7 @@ impl VoxelMap {
                     frequency *= 2.0;
                     amplitude /= 2.0;
                 }
-                let threshold = ((noise_value / 1.875 + 1.0) / 2.0 * CHUNK_HEIGHT as f64).floor() as usize;
-                dbg!(threshold);
-
+                let threshold = spline.sample(noise_value/1.875).unwrap().floor() as usize;//((noise_value / 1.875 + 1.0) / 2.0 * CHUNK_HEIGHT as f64).floor() as usize;
 
                     for y in 0..CHUNK_HEIGHT {
                         match y.cmp(&threshold) {

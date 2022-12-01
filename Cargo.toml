@@ -17,6 +17,7 @@ bevy_flycam = "*"
 itertools = "0.10.3"
 ndarray = "0.15.6"
 noise = "0.7.0"
+splines = "4.1.1"
 
 [workspace]
 resolver = "2"
