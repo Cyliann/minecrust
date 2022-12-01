@@ -12,8 +12,8 @@ pub const WIDTH: f32 = 1920.0;
 mod block_types;
 mod chunk;
 mod voxel_data;
-mod world;
 mod voxel_map;
+mod world;
 
 fn main() {
     App::new()
@@ -73,16 +73,20 @@ fn spawn_camera(mut commands: Commands) {
 
 fn spawn_light(mut commands: Commands) {
     commands
-        .spawn_bundle(PointLightBundle {
-            point_light: PointLight {
-                intensity: 3000.0,
-                shadows_enabled: true,
-                range: 1000.0,
-                radius: 1000.0,
-                ..default()
-            },
-            transform: Transform::from_xyz(32.0, 50.0, 32.0),
-            ..default()
+        // .spawn_bundle(PointLightBundle {
+        //     point_light: PointLight {
+        //         intensity: 3000.0,
+        //         shadows_enabled: true,
+        //         range: 1000.0,
+        //         radius: 1000.0,
+        //         ..default()
+        //     },
+        //     transform: Transform::from_xyz(32.0, 50.0, 32.0),
+        //     ..default()
+        // })
+        .insert_resource(AmbientLight {
+            color: Color::WHITE,
+            brightness: 0.5,
         })
-        .insert(Name::new("Light"));
+    // .insert(Name::new("Light"));
 }

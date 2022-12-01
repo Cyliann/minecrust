@@ -1,16 +1,16 @@
+use crate::voxel_map;
 use crate::world::{ChunkCoord, WORLD_SIZE};
 use bevy::prelude::{Mesh, ResMut, Vec2, Vec3};
 use bevy::render::mesh::{self, PrimitiveTopology};
 use itertools::iproduct;
-use crate::voxel_map;
 
 use super::block_types;
 use super::world;
 
 pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_HEIGHT: usize = 64;
-pub const WORLD_SIZE_IN_CHUNKS: usize = 32;
-pub const RENDER_DISTANCE: usize = 8;
+pub const WORLD_SIZE_IN_CHUNKS: usize = 8;
+pub const RENDER_DISTANCE: usize = 4;
 
 pub const VERTICES: [[Vec3; 4]; 6] = [
     [

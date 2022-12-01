@@ -1,9 +1,9 @@
 use crate::chunk::Chunk;
 use crate::voxel_data::{CHUNK_WIDTH, RENDER_DISTANCE, WORLD_SIZE_IN_CHUNKS};
+use crate::voxel_map;
 use bevy::prelude::*;
 use itertools::Itertools;
 use ndarray::Array2;
-use crate::voxel_map;
 
 pub const WORLD_SIZE: usize = WORLD_SIZE_IN_CHUNKS * CHUNK_WIDTH;
 pub const TEXTURE_ATLAS_SIZE_IN_BLOCKS: u8 = 4;

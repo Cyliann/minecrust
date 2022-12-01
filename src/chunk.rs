@@ -1,7 +1,7 @@
 use crate::voxel_data::{self, CHUNK_WIDTH, WORLD_SIZE_IN_CHUNKS};
+use crate::voxel_map;
 use crate::world::{ChunkCoord, ChunkMap};
 use bevy::prelude::*;
-use crate::voxel_map;
 
 pub struct Chunk {
     pub position: ChunkCoord,
