@@ -23,7 +23,7 @@ pub const BLOCKTYPES: [BlockType; 6] = [
     BlockType {
         name: "grass",
         is_solid: true,
-        texture_id: Some([3, 3, 0, 1, 2, 3]),
+        texture_id: Some([3, 3, 1, 0, 3, 3]),
     },
     BlockType {
         name: "dirt",

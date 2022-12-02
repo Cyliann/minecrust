@@ -9,8 +9,8 @@ use super::block_types;
 use super::world;
 
 pub const CHUNK_WIDTH: usize = 16;
-pub const CHUNK_HEIGHT: usize = 128;
-pub const WORLD_SIZE_IN_CHUNKS: usize = 100;
+pub const CHUNK_HEIGHT: usize = 130;
+pub const WORLD_SIZE_IN_CHUNKS: usize = 52;
 pub const RENDER_DISTANCE: usize = 16;
 
 pub const VERTICES: [[Vec3; 4]; 6] = [
@@ -61,7 +61,7 @@ pub const FACE_CHECKS: [Vec3; 6] = [
     Vec3::new(0.0, 0.0, -1.0), // left face
 ];
 
-pub const INDICES: [u32; 6] = [0, 2, 1, 0, 3, 2];
+pub const INDICES: [u32; 6] = [3, 1, 2, 3, 0, 1];
 
 pub const NORMALS: [Vec3; 6] = [
     Vec3::new(-1.0, 0.0, 0.0), // front face
@@ -86,25 +86,26 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::Vox
     );
 
     for (x, y, z) in iproduct!((0..CHUNK_WIDTH), (0..CHUNK_HEIGHT), (0..CHUNK_WIDTH)) {
-        let pos = Vec3::new(x as f32, y as f32, z as f32);
 
-        if check_voxel((shifted_chunk_pos_in_blocks.x + pos.x) as i32, (shifted_chunk_pos_in_blocks.y + pos.y) as i32, (shifted_chunk_pos_in_blocks.z + pos.z) as i32, voxel_map) {
-            let block_type = &block_types::BLOCKTYPES[voxel_map.voxels[[
-                x + shifted_chunk_pos_in_blocks.x as usize,
-                y,
-                z + shifted_chunk_pos_in_blocks.z as usize,
-            ]] as usize];
+        if !check_voxel(shifted_chunk_pos_in_blocks.x as i32 + x as i32, shifted_chunk_pos_in_blocks.y as i32 + y as i32, shifted_chunk_pos_in_blocks.z as i32 + z as i32, voxel_map) {
 
             for i in 0..6 {
                 let face_check = FACE_CHECKS[i];
-                if !(check_voxel(
-                    (shifted_chunk_pos_in_blocks.x + pos.x + face_check.x) as i32,
-                    (pos.y + face_check.y) as i32,
-                    (shifted_chunk_pos_in_blocks.z + pos.z + face_check.z) as i32,
+
+                if check_voxel(
+                    (shifted_chunk_pos_in_blocks.x + face_check.x) as i32 + x as i32,
+                    face_check.y as i32 + y as i32,
+                    (shifted_chunk_pos_in_blocks.z + face_check.z) as i32 + z as i32,
                     voxel_map,
-                )) {
+                ) {
+                    let block_type = &block_types::BLOCKTYPES[voxel_map.voxels[[
+                        (x as f32 + shifted_chunk_pos_in_blocks.x + face_check.x) as usize,
+                        (y as f32 + face_check.y) as usize,
+                        (z as f32 + shifted_chunk_pos_in_blocks.z + face_check.z) as usize,
+                    ]] as usize];
+
                     for position in VERTICES[i].iter() {
-                        positions.push((*position + pos).to_array());
+                        positions.push((*position + Vec3::new(x as f32, y as f32, z as f32)).to_array());
                         normals.push(NORMALS[i].to_array());
                     }
                     for triangle_index in INDICES.iter() {
