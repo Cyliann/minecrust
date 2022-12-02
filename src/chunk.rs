@@ -28,6 +28,7 @@ impl Chunk {
             ..default()
         });
 
+        let _span = info_span!("Spawn mesh").entered();
         chunk_map.0[[
             (chunk_pos.x + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize,
             (chunk_pos.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize,

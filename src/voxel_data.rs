@@ -1,3 +1,4 @@
+use bevy::log::info_span;
 use crate::voxel_map;
 use crate::world::{ChunkCoord, WORLD_SIZE};
 use bevy::prelude::{Mesh, ResMut, Vec2, Vec3};
@@ -8,9 +9,9 @@ use super::block_types;
 use super::world;
 
 pub const CHUNK_WIDTH: usize = 16;
-pub const CHUNK_HEIGHT: usize = 120;
-pub const WORLD_SIZE_IN_CHUNKS: usize = 30;
-pub const RENDER_DISTANCE: usize = 8;
+pub const CHUNK_HEIGHT: usize = 128;
+pub const WORLD_SIZE_IN_CHUNKS: usize = 100;
+pub const RENDER_DISTANCE: usize = 16;
 
 pub const VERTICES: [[Vec3; 4]; 6] = [
     [
@@ -72,6 +73,7 @@ pub const NORMALS: [Vec3; 6] = [
 ];
 
 pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::VoxelMap>) -> Mesh {
+    let _span = info_span!("Create mesh").entered();
     let mut positions = Vec::new();
     let mut indices = Vec::new();
     let mut normals = Vec::new();
@@ -86,7 +88,7 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::Vox
     for (x, y, z) in iproduct!((0..CHUNK_WIDTH), (0..CHUNK_HEIGHT), (0..CHUNK_WIDTH)) {
         let pos = Vec3::new(x as f32, y as f32, z as f32);
 
-        if check_voxel(shifted_chunk_pos_in_blocks + pos, voxel_map) {
+        if check_voxel((shifted_chunk_pos_in_blocks.x + pos.x) as i32, (shifted_chunk_pos_in_blocks.y + pos.y) as i32, (shifted_chunk_pos_in_blocks.z + pos.z) as i32, voxel_map) {
             let block_type = &block_types::BLOCKTYPES[voxel_map.voxels[[
                 x + shifted_chunk_pos_in_blocks.x as usize,
                 y,
@@ -94,13 +96,11 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::Vox
             ]] as usize];
 
             for i in 0..6 {
+                let face_check = FACE_CHECKS[i];
                 if !(check_voxel(
-                    Vec3::new(
-                        shifted_chunk_pos_in_blocks.x as f32,
-                        0.0,
-                        shifted_chunk_pos_in_blocks.z as f32,
-                    ) + pos
-                        + FACE_CHECKS[i],
+                    (shifted_chunk_pos_in_blocks.x + pos.x + face_check.x) as i32,
+                    (pos.y + face_check.y) as i32,
+                    (shifted_chunk_pos_in_blocks.z + pos.z + face_check.z) as i32,
                     voxel_map,
                 )) {
                     for position in VERTICES[i].iter() {
@@ -127,10 +127,7 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::Vox
     mesh
 }
 
-pub fn check_voxel(pos: Vec3, voxel_map: &mut ResMut<voxel_map::VoxelMap>) -> bool {
-    let x = pos.x as i32;
-    let y = pos.y as i32;
-    let z = pos.z as i32;
+pub fn check_voxel(x: i32, y: i32, z: i32, voxel_map: &mut ResMut<voxel_map::VoxelMap>) -> bool {
 
     if x > WORLD_SIZE as i32 - 1
         || x < 0

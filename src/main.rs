@@ -3,7 +3,7 @@ use bevy::{prelude::*, render::texture::ImageSettings};
 // use bevy::window::PresentMode::Immediate;
 use crate::voxel_data::WORLD_SIZE_IN_CHUNKS;
 use bevy_atmosphere::prelude::*;
-use bevy_flycam::{FlyCam, NoCameraPlayerPlugin};
+use bevy_flycam::{FlyCam, NoCameraPlayerPlugin, MovementSettings};
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 pub const HEIGHT: f32 = 1080.0;
@@ -37,6 +37,10 @@ fn main() {
         .insert_resource(world::GeneratedChunks {
             chunks: [[false; WORLD_SIZE_IN_CHUNKS]; WORLD_SIZE_IN_CHUNKS],
         })
+        .insert_resource(MovementSettings {
+            sensitivity: 0.00012, // default: 0.00012
+            speed: 30.0, // default: 12.0
+        })
         // Plugins
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new()) // Inspector setup
@@ -61,7 +65,7 @@ pub struct Player;
 fn spawn_camera(mut commands: Commands) {
     commands
         .spawn_bundle(Camera3dBundle {
-            transform: Transform::from_xyz(1.0, 30.0, 5.0)
+            transform: Transform::from_xyz(1.0, 130.0, 5.0)
                 .looking_at(Vec3::new(16.0, 16.0, 16.0), Vec3::Y),
             ..Default::default()
         })

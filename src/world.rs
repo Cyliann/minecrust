@@ -4,7 +4,6 @@ use crate::voxel_map;
 use bevy::prelude::*;
 use itertools::Itertools;
 use ndarray::Array2;
-use crate::voxel_map::VoxelMap;
 
 pub const WORLD_SIZE: usize = WORLD_SIZE_IN_CHUNKS * CHUNK_WIDTH;
 pub const TEXTURE_ATLAS_SIZE_IN_BLOCKS: u8 = 16;
@@ -55,7 +54,7 @@ impl ChunkMap {
     }
 }
 
-pub fn spawn_world(mut ev_spawn_chunk: EventWriter<SpawnChunkEvent>, voxel_map: Res<VoxelMap>) {
+pub fn spawn_world(mut ev_spawn_chunk: EventWriter<SpawnChunkEvent>) {
     for (x, z) in (RENDER_DISTANCE as isize * -1..RENDER_DISTANCE as isize)
         .cartesian_product(RENDER_DISTANCE as isize * -1..RENDER_DISTANCE as isize)
     {
@@ -90,6 +89,7 @@ pub fn spawn_chunk(
                 voxel_map.populate_voxel_map(ev.0);
             }
 
+            let _span = info_span!("Chunk spawn").entered();
             Chunk::new(
                 &ev.0,
                 &mut commands,

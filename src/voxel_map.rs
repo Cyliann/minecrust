@@ -5,6 +5,7 @@ use itertools::Itertools;
 use ndarray::Array3;
 use noise::{NoiseFn, Perlin};
 use std::cmp::{Ord, Ordering};
+use bevy::log::info_span;
 use splines::{Interpolation, Key, Spline};
 
 #[derive(Clone, Debug, Default)]
@@ -20,18 +21,19 @@ impl VoxelMap {
     }
 
     pub fn populate_voxel_map(&mut self, chunk_pos: world::ChunkCoord) {
+        let _span = info_span!("VoxelMap population").entered();
         let noise = Perlin::new();
         let scale = 300.;
         let octave_number = 4;
         let start = Key::new(-1., 5., Interpolation::Linear);
         let point1 = Key::new(-0.8, 10., Interpolation::Linear);
-        let point2 = Key::new(-0.3, 10., Interpolation::Linear);
-        let point3 = Key::new(-0.2, 40., Interpolation::Linear);
-        let point4 = Key::new(0., 40., Interpolation::Linear);
-        let point5= Key::new(0.1, 110., Interpolation::Linear);
-        // let point6= Key::new(0.4, 120., Interpolation::Linear);
+        let point2 = Key::new(-0.5, 10., Interpolation::Linear);
+        let point3 = Key::new(-0.6, 40., Interpolation::Linear);
+        let point4 = Key::new(-0.5, 40., Interpolation::Linear);
+        let point5= Key::new(-0.4, 80., Interpolation::Linear);
+        let point6= Key::new(-0.3, 80., Interpolation::Linear);
         let end = Key::new(1., 127., Interpolation::default());
-        let spline = Spline::from_vec(vec![start, point1, point2, point3, point4, point5, end]);
+        let spline = Spline::from_vec(vec![start, point1, point2, point3, point4, point5, point6, end]);
 
         let shifted_x = (chunk_pos.x * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as usize;
         let shifted_z = (chunk_pos.z * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as usize;
