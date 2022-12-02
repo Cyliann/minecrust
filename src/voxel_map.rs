@@ -21,17 +21,17 @@ impl VoxelMap {
 
     pub fn populate_voxel_map(&mut self, chunk_pos: world::ChunkCoord) {
         let noise = Perlin::new();
-        let scale = 200.;
+        let scale = 300.;
         let octave_number = 4;
-        let start = Key::new(-1., 100., Interpolation::Linear);
+        let start = Key::new(-1., 5., Interpolation::Linear);
         let point1 = Key::new(-0.8, 10., Interpolation::Linear);
         let point2 = Key::new(-0.3, 10., Interpolation::Linear);
         let point3 = Key::new(-0.2, 40., Interpolation::Linear);
         let point4 = Key::new(0., 40., Interpolation::Linear);
-        let point5= Key::new(0.1, 100., Interpolation::Linear);
-        let point6= Key::new(0.4, 120., Interpolation::Linear);
+        let point5= Key::new(0.1, 110., Interpolation::Linear);
+        // let point6= Key::new(0.4, 120., Interpolation::Linear);
         let end = Key::new(1., 127., Interpolation::default());
-        let spline = Spline::from_vec(vec![start, point1, point2, point3, point4, point5, point6, end]);
+        let spline = Spline::from_vec(vec![start, point1, point2, point3, point4, point5, end]);
 
         let shifted_x = (chunk_pos.x * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as usize;
         let shifted_z = (chunk_pos.z * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as usize;
@@ -53,14 +53,17 @@ impl VoxelMap {
                     frequency *= 2.0;
                     amplitude /= 2.0;
                 }
-                let threshold = spline.sample(noise_value/1.875).unwrap().floor() as usize;//((noise_value / 1.875 + 1.0) / 2.0 * CHUNK_HEIGHT as f64).floor() as usize;
+                let threshold = spline.sample(noise_value/1.875).unwrap().floor() as usize; //((noise_value / 1.875 + 1.0) / 2.0 * CHUNK_HEIGHT as f64).floor() as usize;
 
                     for y in 0..CHUNK_HEIGHT {
+                        if y < 50 {
+                            self.voxels[[global_x, y, global_z]] = 5;
+                        }
                         match y.cmp(&threshold) {
                             Ordering::Less => {
-                                if y == 0 {
+                               if y == 0 {
                                     self.voxels[[global_x, y, global_z]] = 2;
-                                } else if (threshold - y) == 1 {
+                                }  else if (threshold - y) == 1 {
                                     self.voxels[[global_x, y, global_z]] = 4;
                                 } else {
                                     self.voxels[[global_x, y, global_z]] = 1;

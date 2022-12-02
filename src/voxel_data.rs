@@ -8,9 +8,9 @@ use super::block_types;
 use super::world;
 
 pub const CHUNK_WIDTH: usize = 16;
-pub const CHUNK_HEIGHT: usize = 128;
-pub const WORLD_SIZE_IN_CHUNKS: usize = 50;
-pub const RENDER_DISTANCE: usize = 16;
+pub const CHUNK_HEIGHT: usize = 120;
+pub const WORLD_SIZE_IN_CHUNKS: usize = 30;
+pub const RENDER_DISTANCE: usize = 8;
 
 pub const VERTICES: [[Vec3; 4]; 6] = [
     [
