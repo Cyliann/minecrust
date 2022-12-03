@@ -1,7 +1,7 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::{prelude::*, render::texture::ImageSettings};
 // use bevy::window::PresentMode::Immediate;
-use crate::voxel_data::WORLD_SIZE_IN_CHUNKS;
+use crate::voxel_data::{WORLD_HEIGHT_IN_CHUNKS, WORLD_SIZE_IN_CHUNKS};
 use bevy_atmosphere::prelude::*;
 use bevy_flycam::{FlyCam, NoCameraPlayerPlugin, MovementSettings};
 use bevy_inspector_egui::WorldInspectorPlugin;
@@ -35,7 +35,7 @@ fn main() {
         .insert_resource(world::ActiveChunks::new())
         .insert_resource(world::PlayerLastChunk::new())
         .insert_resource(world::GeneratedChunks {
-            chunks: [[false; WORLD_SIZE_IN_CHUNKS]; WORLD_SIZE_IN_CHUNKS],
+            chunks: [[[false; WORLD_SIZE_IN_CHUNKS]; WORLD_HEIGHT_IN_CHUNKS]; WORLD_SIZE_IN_CHUNKS],
         })
         .insert_resource(MovementSettings {
             sensitivity: 0.00012, // default: 0.00012
@@ -51,9 +51,9 @@ fn main() {
         // Events
         .add_event::<world::SpawnChunkEvent>()
         // Systems
+        .add_startup_system(world::spawn_world)
         .add_startup_system(spawn_light)
         .add_startup_system(spawn_camera)
-        .add_startup_system(world::spawn_world)
         .add_system(world::check_render_distance)
         .add_system(world::spawn_chunk)
         .run();

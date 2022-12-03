@@ -1,6 +1,6 @@
 use bevy::log::info_span;
 use crate::voxel_map;
-use crate::world::{ChunkCoord, WORLD_SIZE};
+use crate::world::{ChunkCoord, WORLD_HEIGHT, WORLD_SIZE};
 use bevy::prelude::{Mesh, ResMut, Vec2, Vec3};
 use bevy::render::mesh::{self, PrimitiveTopology};
 use itertools::iproduct;
@@ -8,10 +8,10 @@ use itertools::iproduct;
 use super::block_types;
 use super::world;
 
-pub const CHUNK_WIDTH: usize = 16;
-pub const CHUNK_HEIGHT: usize = 130;
-pub const WORLD_SIZE_IN_CHUNKS: usize = 52;
-pub const RENDER_DISTANCE: usize = 16;
+pub const CHUNK_SIZE: usize = 32;
+pub const WORLD_SIZE_IN_CHUNKS: usize = 32;
+pub const WORLD_HEIGHT_IN_CHUNKS: usize = 5;
+pub const RENDER_DISTANCE: usize = 8;
 
 pub const VERTICES: [[Vec3; 4]; 6] = [
     [
@@ -79,29 +79,27 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::Vox
     let mut normals = Vec::new();
     let mut uvs = Vec::new();
     let mut index: u32 = 0;
-    let shifted_chunk_pos_in_blocks = Vec3::new(
-        (chunk_pos.x * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as f32,
-        0.0,
-        (chunk_pos.z * CHUNK_WIDTH as i32 + (WORLD_SIZE / 2) as i32) as f32,
-    );
+    let shifted_global_x = chunk_pos.x * CHUNK_SIZE as i32 + (WORLD_SIZE / 2) as i32;
+    let shifted_global_y = chunk_pos.y * CHUNK_SIZE as i32;
+    let shifted_global_z = chunk_pos.z * CHUNK_SIZE as i32 + (WORLD_SIZE / 2) as i32;
 
-    for (x, y, z) in iproduct!((0..CHUNK_WIDTH), (0..CHUNK_HEIGHT), (0..CHUNK_WIDTH)) {
+    for (x, y, z) in iproduct!((0..CHUNK_SIZE), (0..CHUNK_SIZE), (0..CHUNK_SIZE)) {
 
-        if !check_voxel(shifted_chunk_pos_in_blocks.x as i32 + x as i32, shifted_chunk_pos_in_blocks.y as i32 + y as i32, shifted_chunk_pos_in_blocks.z as i32 + z as i32, voxel_map) {
+        if !check_voxel(shifted_global_x + x as i32, shifted_global_y + y as i32, shifted_global_z + z as i32, voxel_map) {
 
             for i in 0..6 {
                 let face_check = FACE_CHECKS[i];
 
                 if check_voxel(
-                    (shifted_chunk_pos_in_blocks.x + face_check.x) as i32 + x as i32,
-                    face_check.y as i32 + y as i32,
-                    (shifted_chunk_pos_in_blocks.z + face_check.z) as i32 + z as i32,
+                    shifted_global_x + face_check.x as i32 + x as i32,
+                    shifted_global_y + face_check.y as i32 + y as i32,
+                    shifted_global_z + face_check.z as i32 + z as i32,
                     voxel_map,
                 ) {
                     let block_type = &block_types::BLOCKTYPES[voxel_map.voxels[[
-                        (x as f32 + shifted_chunk_pos_in_blocks.x + face_check.x) as usize,
-                        (y as f32 + face_check.y) as usize,
-                        (z as f32 + shifted_chunk_pos_in_blocks.z + face_check.z) as usize,
+                        (x as i32 + shifted_global_x + face_check.x as i32) as usize,
+                        (y as i32 + shifted_global_y + face_check.y as i32) as usize,
+                        (z as i32 + shifted_global_z + face_check.z as i32) as usize,
                     ]] as usize];
 
                     for position in VERTICES[i].iter() {
@@ -132,7 +130,7 @@ pub fn check_voxel(x: i32, y: i32, z: i32, voxel_map: &mut ResMut<voxel_map::Vox
 
     if x > WORLD_SIZE as i32 - 1
         || x < 0
-        || y > CHUNK_HEIGHT as i32 - 1
+        || y > WORLD_HEIGHT as i32 - 1
         || y < 0
         || z > WORLD_SIZE as i32 - 1
         || z < 0

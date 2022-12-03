@@ -1,4 +1,4 @@
-use crate::voxel_data::{self, CHUNK_WIDTH, WORLD_SIZE_IN_CHUNKS};
+use crate::voxel_data::{self, CHUNK_SIZE, WORLD_SIZE_IN_CHUNKS};
 use crate::voxel_map;
 use crate::world::{ChunkCoord, ChunkMap};
 use bevy::prelude::*;
@@ -31,6 +31,7 @@ impl Chunk {
         let _span = info_span!("Spawn mesh").entered();
         chunk_map.0[[
             (chunk_pos.x + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize,
+            chunk_pos.y as usize,
             (chunk_pos.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize,
         ]] = Some(
             commands
@@ -38,15 +39,15 @@ impl Chunk {
                     mesh: mesh_handle,
                     material: material_handle,
                     transform: Transform::from_xyz(
-                        (chunk_pos.x * CHUNK_WIDTH as i32) as f32,
-                        0.0,
-                        (chunk_pos.z * CHUNK_WIDTH as i32) as f32,
+                        (chunk_pos.x * CHUNK_SIZE as i32) as f32,
+                        (chunk_pos.y * CHUNK_SIZE as i32) as f32,
+                        (chunk_pos.z * CHUNK_SIZE as i32) as f32,
                     ),
                     ..Default::default()
                 })
                 .insert(Name::new(format!(
-                    "Chunk ({}, {})",
-                    chunk_pos.x, chunk_pos.z
+                    "Chunk ({}, {}, {})",
+                    chunk_pos.x, chunk_pos.y, chunk_pos.z
                 )))
                 .id(),
         );
