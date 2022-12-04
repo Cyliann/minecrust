@@ -3,7 +3,7 @@ use bevy::{prelude::*, render::texture::ImageSettings};
 // use bevy::window::PresentMode::Immediate;
 use crate::voxel_data::{WORLD_HEIGHT_IN_CHUNKS, WORLD_SIZE_IN_CHUNKS};
 use bevy_atmosphere::prelude::*;
-use bevy_flycam::{FlyCam, NoCameraPlayerPlugin, MovementSettings};
+use bevy_flycam::{FlyCam, MovementSettings, NoCameraPlayerPlugin};
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 pub const HEIGHT: f32 = 1080.0;
@@ -35,11 +35,12 @@ fn main() {
         .insert_resource(world::ActiveChunks::new())
         .insert_resource(world::PlayerLastChunk::new())
         .insert_resource(world::GeneratedChunks {
-            chunks: [[[false; WORLD_SIZE_IN_CHUNKS]; WORLD_HEIGHT_IN_CHUNKS]; WORLD_SIZE_IN_CHUNKS],
+            chunks: [[[(false, true); WORLD_SIZE_IN_CHUNKS]; WORLD_HEIGHT_IN_CHUNKS];
+                WORLD_SIZE_IN_CHUNKS],
         })
         .insert_resource(MovementSettings {
             sensitivity: 0.00012, // default: 0.00012
-            speed: 30.0, // default: 12.0
+            speed: 30.0,          // default: 12.0
         })
         // Plugins
         .add_plugins(DefaultPlugins)

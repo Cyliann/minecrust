@@ -1,9 +1,11 @@
 use crate::chunk::Chunk;
-use crate::voxel_data::{CHUNK_SIZE, RENDER_DISTANCE, WORLD_HEIGHT_IN_CHUNKS, WORLD_SIZE_IN_CHUNKS};
+use crate::voxel_data::{
+    CHUNK_SIZE, RENDER_DISTANCE, WORLD_HEIGHT_IN_CHUNKS, WORLD_SIZE_IN_CHUNKS,
+};
+use crate::voxel_map::VoxelMap;
 use bevy::prelude::*;
 use itertools::iproduct;
 use ndarray::Array3;
-use crate::voxel_map::VoxelMap;
 
 pub const WORLD_SIZE: usize = WORLD_SIZE_IN_CHUNKS * CHUNK_SIZE;
 pub const WORLD_HEIGHT: usize = WORLD_HEIGHT_IN_CHUNKS * CHUNK_SIZE;
@@ -16,7 +18,8 @@ pub struct SpawnChunkEvent(ChunkCoord);
 pub struct PlayerLastChunk(ChunkCoord);
 
 pub struct GeneratedChunks {
-    pub chunks: [[[bool; WORLD_SIZE_IN_CHUNKS]; WORLD_HEIGHT_IN_CHUNKS]; WORLD_SIZE_IN_CHUNKS],
+    pub chunks:
+        [[[(bool, bool); WORLD_SIZE_IN_CHUNKS]; WORLD_HEIGHT_IN_CHUNKS]; WORLD_SIZE_IN_CHUNKS],
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -50,17 +53,22 @@ impl ChunkCoord {
 impl ChunkMap {
     pub fn new() -> Self {
         ChunkMap(Array3::<Option<Entity>>::from_elem(
-            (WORLD_SIZE_IN_CHUNKS, WORLD_HEIGHT_IN_CHUNKS, WORLD_SIZE_IN_CHUNKS),
+            (
+                WORLD_SIZE_IN_CHUNKS,
+                WORLD_HEIGHT_IN_CHUNKS,
+                WORLD_SIZE_IN_CHUNKS,
+            ),
             None,
         ))
     }
 }
 
 pub fn spawn_world(mut ev_spawn_chunk: EventWriter<SpawnChunkEvent>) {
-    for (x, y, z) in iproduct!((RENDER_DISTANCE as isize * -1..RENDER_DISTANCE as isize),
+    for (x, y, z) in iproduct!(
+        (RENDER_DISTANCE as isize * -1..RENDER_DISTANCE as isize),
         (0..WORLD_HEIGHT_IN_CHUNKS),
-        (RENDER_DISTANCE as isize * -1..RENDER_DISTANCE as isize))
-    {
+        (RENDER_DISTANCE as isize * -1..RENDER_DISTANCE as isize)
+    ) {
         let chunk_pos = ChunkCoord {
             x: x as i32,
             y: y as i32,
@@ -88,11 +96,11 @@ pub fn spawn_chunk(
             (&ev.0.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize,
         ]] == None
         {
-            if !generated_chunks.chunks[(&ev.0.x + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize]
-                [*&ev.0.y as usize]
-                [(&ev.0.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize]
-            {
-                voxel_map.populate_voxel_map(ev.0);
+            let generated_chunk = &mut generated_chunks.chunks
+                [(&ev.0.x + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize][*&ev.0.y as usize]
+                [(&ev.0.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize];
+            if !generated_chunk.0 {
+                (*generated_chunk).1 = voxel_map.populate_voxel_map(ev.0);
             }
 
             let _span = info_span!("Chunk spawn").entered();
@@ -104,11 +112,10 @@ pub fn spawn_chunk(
                 &asset_server,
                 &mut voxel_map,
                 &mut chunk_map,
+                generated_chunk.1,
             );
             active_chunks.0.push(ev.0);
-            generated_chunks.chunks[(&ev.0.x + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize]
-                [*&ev.0.y as usize]
-                [(&ev.0.z + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize] = true;
+            (*generated_chunk).0 = true;
         }
     }
 }
@@ -125,11 +132,11 @@ pub fn check_render_distance(
     let chunk_pos = get_chunk_from_player_pos(player_pos);
 
     if !chunk_pos.equals2d(player_last_chunk.0) {
-        for (x, y, z) in iproduct!((chunk_pos.x - RENDER_DISTANCE as i32..chunk_pos.x + RENDER_DISTANCE as i32),
-                (0..WORLD_HEIGHT_IN_CHUNKS as i32),
-                (chunk_pos.z - RENDER_DISTANCE as i32..chunk_pos.z + RENDER_DISTANCE as i32)
-            )
-        {
+        for (x, y, z) in iproduct!(
+            (chunk_pos.x - RENDER_DISTANCE as i32..chunk_pos.x + RENDER_DISTANCE as i32),
+            (0..WORLD_HEIGHT_IN_CHUNKS as i32),
+            (chunk_pos.z - RENDER_DISTANCE as i32..chunk_pos.z + RENDER_DISTANCE as i32)
+        ) {
             if is_chunk_in_world(&ChunkCoord { x, y, z }) {
                 if chunk_map.0[[
                     (x + WORLD_SIZE_IN_CHUNKS as i32 / 2) as usize,
@@ -186,7 +193,7 @@ fn get_chunk_from_player_pos(mut pos: Vec3) -> ChunkCoord {
 fn is_chunk_in_world(chunk_pos: &ChunkCoord) -> bool {
     return chunk_pos.x + WORLD_SIZE_IN_CHUNKS as i32 / 2 >= 0
         && chunk_pos.x + WORLD_SIZE_IN_CHUNKS as i32 / 2 < WORLD_SIZE_IN_CHUNKS as i32
-        && chunk_pos.y  >= 0
+        && chunk_pos.y >= 0
         && chunk_pos.y < WORLD_HEIGHT_IN_CHUNKS as i32
         && chunk_pos.z + WORLD_SIZE_IN_CHUNKS as i32 / 2 >= 0
         && chunk_pos.z + WORLD_SIZE_IN_CHUNKS as i32 / 2 < WORLD_SIZE_IN_CHUNKS as i32;

@@ -1,6 +1,6 @@
-use bevy::log::info_span;
 use crate::voxel_map;
 use crate::world::{ChunkCoord, WORLD_HEIGHT, WORLD_SIZE};
+use bevy::log::info_span;
 use bevy::prelude::{Mesh, ResMut, Vec2, Vec3};
 use bevy::render::mesh::{self, PrimitiveTopology};
 use itertools::iproduct;
@@ -8,7 +8,7 @@ use itertools::iproduct;
 use super::block_types;
 use super::world;
 
-pub const CHUNK_SIZE: usize = 32;
+pub const CHUNK_SIZE: usize = 36;
 pub const WORLD_SIZE_IN_CHUNKS: usize = 32;
 pub const WORLD_HEIGHT_IN_CHUNKS: usize = 5;
 pub const RENDER_DISTANCE: usize = 8;
@@ -84,9 +84,12 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::Vox
     let shifted_global_z = chunk_pos.z * CHUNK_SIZE as i32 + (WORLD_SIZE / 2) as i32;
 
     for (x, y, z) in iproduct!((0..CHUNK_SIZE), (0..CHUNK_SIZE), (0..CHUNK_SIZE)) {
-
-        if !check_voxel(shifted_global_x + x as i32, shifted_global_y + y as i32, shifted_global_z + z as i32, voxel_map) {
-
+        if !check_voxel(
+            shifted_global_x + x as i32,
+            shifted_global_y + y as i32,
+            shifted_global_z + z as i32,
+            voxel_map,
+        ) {
             for i in 0..6 {
                 let face_check = FACE_CHECKS[i];
 
@@ -103,7 +106,8 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::Vox
                     ]] as usize];
 
                     for position in VERTICES[i].iter() {
-                        positions.push((*position + Vec3::new(x as f32, y as f32, z as f32)).to_array());
+                        positions
+                            .push((*position + Vec3::new(x as f32, y as f32, z as f32)).to_array());
                         normals.push(NORMALS[i].to_array());
                     }
                     for triangle_index in INDICES.iter() {
@@ -127,7 +131,6 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::Vox
 }
 
 pub fn check_voxel(x: i32, y: i32, z: i32, voxel_map: &mut ResMut<voxel_map::VoxelMap>) -> bool {
-
     if x > WORLD_SIZE as i32 - 1
         || x < 0
         || y > WORLD_HEIGHT as i32 - 1

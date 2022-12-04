@@ -1,12 +1,12 @@
 use crate::voxel_data::CHUNK_SIZE;
 use crate::world;
 use crate::world::{WORLD_HEIGHT, WORLD_SIZE};
+use bevy::log::info_span;
+use bracket_noise::prelude::*;
 use itertools::Itertools;
 use ndarray::Array3;
-use noise::{NoiseFn, Perlin};
-use std::cmp::{Ord, Ordering};
-use bevy::log::info_span;
 use splines::{Interpolation, Key, Spline};
+use std::cmp::{Ord, Ordering};
 
 #[derive(Clone, Debug, Default)]
 pub struct VoxelMap {
@@ -20,65 +20,67 @@ impl VoxelMap {
         }
     }
 
-    pub fn populate_voxel_map(&mut self, chunk_pos: world::ChunkCoord) {
+    pub fn populate_voxel_map(&mut self, chunk_pos: world::ChunkCoord) -> bool {
         let _span = info_span!("VoxelMap population").entered();
-        let noise = Perlin::new();
-        let scale = 300.;
-        let octave_number = 4;
+        let mut noise = FastNoise::new();
+        noise.set_noise_type(NoiseType::SimplexFractal);
+        noise.set_fractal_type(FractalType::FBM);
+        noise.set_fractal_octaves(4);
+        noise.set_fractal_gain(0.6);
+        noise.set_fractal_lacunarity(2.0);
+        noise.set_frequency(2.0);
+        let scale = 500.;
+        let mut is_empty = true;
 
         let start = Key::new(-1., 5., Interpolation::Linear);
         let point1 = Key::new(-0.8, 10., Interpolation::Linear);
-        let point2 = Key::new(-0.5, 10., Interpolation::Linear);
-        let point3 = Key::new(-0.6, 40., Interpolation::Linear);
-        let point4 = Key::new(-0.5, 40., Interpolation::Linear);
-        let point5= Key::new(-0.4, 80., Interpolation::Linear);
-        let point6= Key::new(-0.3, 80., Interpolation::Linear);
+        let point3 = Key::new(-0.4, 40., Interpolation::Linear);
+        let point4 = Key::new(-0.3, 40., Interpolation::Linear);
+        let point5 = Key::new(-0., 80., Interpolation::Linear);
+        let point6 = Key::new(-0.1, 80., Interpolation::Linear);
         let end = Key::new(1., 127., Interpolation::default());
-        let spline = Spline::from_vec(vec![start, point1, point2, point3, point4, point5, point6, end]);
+        let spline = Spline::from_vec(vec![start, point1, point3, point4, point5, point6, end]);
 
         let shifted_x = (chunk_pos.x * CHUNK_SIZE as i32 + (WORLD_SIZE / 2) as i32) as usize;
         let shifted_y = chunk_pos.y as usize * CHUNK_SIZE;
         let shifted_z = (chunk_pos.z * CHUNK_SIZE as i32 + (WORLD_SIZE / 2) as i32) as usize;
 
-        for (x, z) in (0 as usize..CHUNK_SIZE + 1).cartesian_product(0 as usize..CHUNK_SIZE + 1) {
-            let global_x = shifted_x + x;
-            let global_z = shifted_z + z;
-            let mut frequency = 1.0;
-            let mut amplitude = 1.0;
+        for (x, z) in (-1..CHUNK_SIZE as i32 + 1).cartesian_product(-1..CHUNK_SIZE as i32 + 1) {
+            let global_x = shifted_x as i32 + x;
+            let global_z = shifted_z as i32 + z;
 
-            if global_x < WORLD_SIZE && global_z < WORLD_SIZE {
-                let mut noise_value = 0.0;
-                for _ in 0..octave_number {
-                    noise_value += amplitude
-                       * (noise.get([
-                                frequency * global_x as f64 / scale,
-                                frequency * global_z as f64 / scale,
-                            ]));
-                    frequency *= 2.0;
-                    amplitude /= 2.0;
-                }
-                let threshold = spline.sample(noise_value/1.875).unwrap().floor() as usize; //((noise_value / 1.875 + 1.0) / 2.0 * CHUNK_HEIGHT as f64).floor() as usize;
+            if global_x < WORLD_SIZE as i32 && global_z < WORLD_SIZE as i32 && x >= 0 && z >= 0 {
+                let noise_value = noise.get_noise(global_x as f32 / scale, global_z as f32 / scale);
 
-                    for mut y in 0..CHUNK_SIZE {
-                        y = y + shifted_y;
-                        if y < 50 {
-                            self.voxels[[global_x, y, global_z]] = 5;
-                        }
-                        match y.cmp(&threshold) {
+                let threshold = (spline.sample(noise_value).unwrap() as f32).floor() as usize;
+
+                for y in shifted_y as i32 - 1..(shifted_y + CHUNK_SIZE) as i32 + 1 {
+                    if y < WORLD_HEIGHT as i32 && y >= 0 {
+                        match (y as usize).cmp(&threshold) {
                             Ordering::Less => {
-                               if y == 0 {
-                                    self.voxels[[global_x, y, global_z]] = 2;
-                                }  else if (threshold - y) == 1 {
-                                    self.voxels[[global_x, y, global_z]] = 4;
+                                if y == 0 {
+                                    self.voxels
+                                        [[global_x as usize, y as usize, global_z as usize]] = 2;
+                                    is_empty = false;
+                                } else if (threshold - y as usize) == 1 {
+                                    self.voxels
+                                        [[global_x as usize, y as usize, global_z as usize]] = 4;
+                                    is_empty = false;
                                 } else {
-                                    self.voxels[[global_x, y, global_z]] = 1;
+                                    self.voxels
+                                        [[global_x as usize, y as usize, global_z as usize]] = 1;
+                                    is_empty = false
                                 }
                             }
                             Ordering::Greater => (),
-                            Ordering::Equal => self.voxels[[global_x, y, global_z]] = 3,
+                            Ordering::Equal => {
+                                self.voxels[[global_x as usize, y as usize, global_z as usize]] = 3
+                            }
                         }
                     }
+                }
             }
         }
+        is_empty
     }
 }
