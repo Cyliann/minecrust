@@ -14,6 +14,7 @@ mod chunk;
 mod voxel_data;
 mod voxel_map;
 mod world;
+mod mesh;
 
 fn main() {
     App::new()
@@ -32,6 +33,8 @@ fn main() {
         })
         .insert_resource(voxel_map::VoxelMap::new())
         .insert_resource(world::ChunkMap::new())
+        .insert_resource(world::ChunkToGenerateQueue(Vec::new()))
+        .insert_resource(world::ChunkToSpawnQueue(Vec::new()))
         .insert_resource(world::ActiveChunks::new())
         .insert_resource(world::PlayerLastChunk::new())
         .insert_resource(world::GeneratedChunks {
@@ -49,13 +52,12 @@ fn main() {
         .add_plugin(AtmospherePlugin) // Atmosphere setup
         .add_plugin(LogDiagnosticsPlugin::default()) // Diagnostics setup
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        // Events
-        .add_event::<world::SpawnChunkEvent>()
         // Systems
         .add_startup_system(world::spawn_world)
         .add_startup_system(spawn_light)
         .add_startup_system(spawn_camera)
         .add_system(world::check_render_distance)
+        .add_system(world::generate_chunk)
         .add_system(world::spawn_chunk)
         .run();
 }

@@ -1,5 +1,6 @@
-use crate::voxel_data::{self, CHUNK_SIZE, WORLD_SIZE_IN_CHUNKS};
+use crate::voxel_data::{CHUNK_SIZE, WORLD_SIZE_IN_CHUNKS};
 use crate::voxel_map;
+use crate::mesh;
 use crate::world::{ChunkCoord, ChunkMap};
 use bevy::prelude::*;
 
@@ -16,10 +17,10 @@ impl Chunk {
         asset_server: &Res<AssetServer>,
         voxel_map: &mut ResMut<voxel_map::VoxelMap>,
         chunk_map: &mut ResMut<ChunkMap>,
-        is_chunk_empty: bool,
+        is_chunk_full: bool,
     ) -> Self {
-        if !is_chunk_empty {
-            let mesh_handle = meshes.add(voxel_data::create_mesh(chunk_pos, voxel_map));
+        if !is_chunk_full {
+            let mesh_handle = meshes.add(mesh::create_mesh(chunk_pos, voxel_map));
             let texture_handle: Handle<Image> = asset_server.load("texture_atlas.png");
 
             let material_handle = materials.add(StandardMaterial {

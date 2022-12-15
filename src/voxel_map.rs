@@ -30,7 +30,7 @@ impl VoxelMap {
         noise.set_fractal_lacunarity(2.0);
         noise.set_frequency(2.0);
         let scale = 500.;
-        let mut is_empty = true;
+        let mut counter = 0;
 
         let start = Key::new(-1., 5., Interpolation::Linear);
         let point1 = Key::new(-0.8, 10., Interpolation::Linear);
@@ -56,31 +56,37 @@ impl VoxelMap {
 
                 for y in shifted_y as i32 - 1..(shifted_y + CHUNK_SIZE) as i32 + 1 {
                     if y < WORLD_HEIGHT as i32 && y >= 0 {
+                        if y < 50 {
+                            self.voxels
+                                [[global_x as usize, y as usize, global_z as usize]] = 5;
+                            counter += 1;
+                        }
                         match (y as usize).cmp(&threshold) {
                             Ordering::Less => {
                                 if y == 0 {
                                     self.voxels
                                         [[global_x as usize, y as usize, global_z as usize]] = 2;
-                                    is_empty = false;
+                                    counter += 1;
                                 } else if (threshold - y as usize) == 1 {
                                     self.voxels
                                         [[global_x as usize, y as usize, global_z as usize]] = 4;
-                                    is_empty = false;
+                                    counter += 1;
                                 } else {
                                     self.voxels
                                         [[global_x as usize, y as usize, global_z as usize]] = 1;
-                                    is_empty = false
+                                    counter += 1;
                                 }
                             }
                             Ordering::Greater => (),
                             Ordering::Equal => {
-                                self.voxels[[global_x as usize, y as usize, global_z as usize]] = 3
+                                self.voxels[[global_x as usize, y as usize, global_z as usize]] = 3;
+                                counter += 1;
                             }
                         }
                     }
                 }
             }
         }
-        is_empty
+     counter == CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE
     }
 }
