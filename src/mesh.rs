@@ -1,10 +1,10 @@
+use crate::voxel_data::{CHUNK_SIZE, FACE_CHECKS, INDICES, NORMALS, VERTICES};
 use crate::voxel_map;
 use crate::world::{ChunkCoord, WORLD_HEIGHT, WORLD_SIZE};
 use bevy::log::info_span;
 use bevy::prelude::{Mesh, ResMut, Vec2, Vec3};
 use bevy::render::mesh::{self, PrimitiveTopology};
 use itertools::iproduct;
-use crate::voxel_data::{CHUNK_SIZE, FACE_CHECKS, INDICES, NORMALS, VERTICES};
 
 use super::block_types;
 use super::world;
@@ -42,7 +42,6 @@ pub fn create_mesh(chunk_pos: &ChunkCoord, voxel_map: &mut ResMut<voxel_map::Vox
                     shifted_global_z + face_check.z as i32 + z as i32,
                     voxel_map,
                 ) {
-
                     for position in VERTICES[i].iter() {
                         positions
                             .push((*position + Vec3::new(x as f32, y as f32, z as f32)).to_array());

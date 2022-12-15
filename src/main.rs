@@ -11,10 +11,10 @@ pub const WIDTH: f32 = 1920.0;
 
 mod block_types;
 mod chunk;
+mod mesh;
 mod voxel_data;
 mod voxel_map;
 mod world;
-mod mesh;
 
 fn main() {
     App::new()

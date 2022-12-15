@@ -1,6 +1,6 @@
+use crate::mesh;
 use crate::voxel_data::{CHUNK_SIZE, WORLD_SIZE_IN_CHUNKS};
 use crate::voxel_map;
-use crate::mesh;
 use crate::world::{ChunkCoord, ChunkMap};
 use bevy::prelude::*;
 

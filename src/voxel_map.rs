@@ -57,8 +57,7 @@ impl VoxelMap {
                 for y in shifted_y as i32 - 1..(shifted_y + CHUNK_SIZE) as i32 + 1 {
                     if y < WORLD_HEIGHT as i32 && y >= 0 {
                         if y < 50 {
-                            self.voxels
-                                [[global_x as usize, y as usize, global_z as usize]] = 5;
+                            self.voxels[[global_x as usize, y as usize, global_z as usize]] = 5;
                             counter += 1;
                         }
                         match (y as usize).cmp(&threshold) {
@@ -87,6 +86,6 @@ impl VoxelMap {
                 }
             }
         }
-     counter == CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE
+        counter == CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE
     }
 }
