@@ -1,7 +1,7 @@
 use bevy::prelude::Vec3;
 
 pub const CHUNK_SIZE: usize = 32;
-pub const WORLD_SIZE_IN_CHUNKS: usize = 32;
+pub const WORLD_SIZE_IN_CHUNKS: usize = 128;
 pub const WORLD_HEIGHT_IN_CHUNKS: usize = 5;
 pub const RENDER_DISTANCE: usize = 8;
 

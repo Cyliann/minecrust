@@ -1,7 +1,6 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::{prelude::*, render::texture::ImageSettings};
 // use bevy::window::PresentMode::Immediate;
-use crate::voxel_data::{WORLD_HEIGHT_IN_CHUNKS, WORLD_SIZE_IN_CHUNKS};
 use bevy_atmosphere::prelude::*;
 use bevy_flycam::{FlyCam, MovementSettings, NoCameraPlayerPlugin};
 use bevy_inspector_egui::WorldInspectorPlugin;
@@ -31,16 +30,13 @@ fn main() {
             //mode: WindowMode::BorderlessFullscreen,
             ..Default::default()
         })
+        .init_resource::<chunk::MaterialHandle>()
         .insert_resource(voxel_map::VoxelMap::new())
         .insert_resource(world::ChunkMap::new())
         .insert_resource(world::ChunkToGenerateQueue(Vec::new()))
         .insert_resource(world::ChunkToSpawnQueue(Vec::new()))
-        .insert_resource(world::ActiveChunks::new())
+        .insert_resource(world::ActiveChunks(Vec::new()))
         .insert_resource(world::PlayerLastChunk::new())
-        .insert_resource(world::GeneratedChunks {
-            chunks: [[[(false, true); WORLD_SIZE_IN_CHUNKS]; WORLD_HEIGHT_IN_CHUNKS];
-                WORLD_SIZE_IN_CHUNKS],
-        })
         .insert_resource(MovementSettings {
             sensitivity: 0.00012, // default: 0.00012
             speed: 30.0,          // default: 12.0
@@ -56,9 +52,10 @@ fn main() {
         .add_startup_system(world::spawn_world)
         .add_startup_system(spawn_light)
         .add_startup_system(spawn_camera)
+        .add_startup_system(chunk::generate_material)
         .add_system(world::check_render_distance)
-        .add_system(world::generate_chunk)
-        .add_system(world::spawn_chunk)
+        .add_system(chunk::generate_chunk)
+        .add_system(chunk::spawn_chunk)
         .run();
 }
 
